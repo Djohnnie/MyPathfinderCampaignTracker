@@ -1,0 +1,397 @@
+@page "/campaigns/{CampaignId:guid}/characters"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@using System.Security.Claims
+
+<PageTitle>Personages — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else
+{
+    <div class="d-flex align-center mb-2" style="gap: 12px;">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo($"/campaigns/{CampaignId}"))" />
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Personages</MudText>
+            @if (_campaignTitle is not null)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_campaignTitle</MudText>
+            }
+        </div>
+    </div>
+
+    <div class="d-flex justify-end mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                   OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+            Nieuw personage
+        </MudButton>
+    </div>
+
+    @if (_characters.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
+                  Style="border: 1px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">Nog geen personages</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Klik op "Nieuw personage" om te beginnen.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var character in _characters)
+            {
+                <MudItem xs="12" md="6" xl="4">
+                    <MudPaper Elevation="0" Class="pa-4 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                        @* Header *@
+                        <div class="d-flex align-center justify-space-between mb-3">
+                            <div>
+                                <div class="d-flex align-center" style="gap: 8px;">
+                                    <MudText Typo="Typo.h6" Style="font-weight: 700;">@character.Name</MudText>
+                                    @if (character.KilledInAction)
+                                    {
+                                        <MudChip T="string" Color="Color.Error" Size="Size.Small"
+                                                 Icon="@Icons.Material.Filled.Dangerous">KIA</MudChip>
+                                    }
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @character.Race · @character.CharacterClass · Niveau @character.Level
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Speler: @character.OwnerUsername
+                                </MudText>
+                            </div>
+                            @if (CanEdit(character))
+                            {
+                                <div>
+                                    <MudTooltip Text="Bewerken">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       Color="Color.Primary" OnClick="@(() => OpenEditDialog(character))" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Verwijderen">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                       Color="Color.Error" OnClick="@(() => OpenDeleteDialog(character))" />
+                                    </MudTooltip>
+                                </div>
+                            }
+                        </div>
+
+                        @* Ability scores *@
+                        <div class="d-flex justify-space-between mb-3" style="gap: 4px;">
+                            @foreach (var (label, score) in AbilityScores(character))
+                            {
+                                <div class="d-flex flex-column align-center pa-2"
+                                     style="border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; flex: 1;">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 600;">
+                                        @label
+                                    </MudText>
+                                    <MudText Typo="Typo.h6" Style="font-weight: 700; line-height: 1.2;">@score</MudText>
+                                    <MudText Typo="Typo.caption" Color="@(Modifier(score) >= 0 ? Color.Success : Color.Error)">
+                                        @(Modifier(score) >= 0 ? $"+{Modifier(score)}" : Modifier(score).ToString())
+                                    </MudText>
+                                </div>
+                            }
+                        </div>
+
+                        @* Backstory snippet *@
+                        @if (!string.IsNullOrWhiteSpace(character.Backstory))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-style: italic;">
+                                @(character.Backstory.Length > 100 ? character.Backstory[..100] + "…" : character.Backstory)
+                            </MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+}
+
+@* ─── Create / Edit Dialog ─── *@
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingId.HasValue ? "Personage bewerken" : "Nieuw personage")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Name" Label="Naam" Variant="Variant.Outlined"
+                              Required="true" MaxLength="200" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Race" Label="Ras" Variant="Variant.Outlined"
+                              Required="true" MaxLength="100" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.CharacterClass" Label="Klasse" Variant="Variant.Outlined"
+                              Required="true" MaxLength="100" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.Level" Label="Niveau" Variant="Variant.Outlined"
+                                 Min="1" Max="20" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Backstory" Label="Achtergrond" Variant="Variant.Outlined"
+                              Lines="3" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">Vermogensscores</MudText>
+            </MudItem>
+
+            @foreach (var (label, prop) in AbilityScoreFields())
+            {
+                <MudItem xs="6" sm="4">
+                    <MudNumericField T="int" Label="@label" Variant="Variant.Outlined"
+                                     Min="1" Max="30"
+                                     Value="@prop.Getter(_form)"
+                                     ValueChanged="@(v => prop.Setter(_form, v))"
+                                     HelperText="@AbilityHelperText(prop.Getter(_form))" />
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudSwitch @bind-Value="_form.KilledInAction" Label="Gedood in actie (KIA)"
+                           Color="Color.Error" Class="mt-1" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Variant="Variant.Text" Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="SaveCharacter" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Opslaan
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@* ─── Delete Confirm Dialog ─── *@
+<MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Personage verwijderen</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Weet u zeker dat u <strong>@_deletingCharacter?.Name</strong> wilt verwijderen?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _deleteDialogOpen = false)" Variant="Variant.Text"
+                   Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="ConfirmDelete" Variant="Variant.Filled" Color="Color.Error"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Verwijderen
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid CampaignId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    private List<CharacterDto> _characters = [];
+    private string? _campaignTitle;
+    private bool _loading = true;
+
+    private Guid _currentUserId;
+    private bool _isAdmin;
+
+    // Create/Edit dialog
+    private bool _dialogOpen;
+    private Guid? _editingId;
+    private CharacterFormModel _form = new();
+    private bool _saving;
+
+    // Delete dialog
+    private bool _deleteDialogOpen;
+    private CharacterDto? _deletingCharacter;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    private readonly DialogOptions _deleteDialogOptions = new()
+    {
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateTask;
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        Guid.TryParse(userIdClaim, out _currentUserId);
+        _isAdmin = authState.User.IsInRole("Admin");
+
+        var campaign = await ApiClient.GetCampaignAsync(CampaignId);
+        _campaignTitle = campaign?.Title;
+
+        await LoadCharactersAsync();
+        _loading = false;
+    }
+
+    private async Task LoadCharactersAsync()
+    {
+        _characters = await ApiClient.GetCharactersAsync(CampaignId);
+    }
+
+    private bool CanEdit(CharacterDto character) =>
+        character.UserId == _currentUserId || _isAdmin;
+
+    private void OpenCreateDialog()
+    {
+        _editingId = null;
+        _form = new CharacterFormModel();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(CharacterDto character)
+    {
+        _editingId = character.Id;
+        _form = new CharacterFormModel
+        {
+            Name = character.Name,
+            Race = character.Race,
+            CharacterClass = character.CharacterClass,
+            Level = character.Level,
+            Backstory = character.Backstory,
+            Strength = character.Strength,
+            Dexterity = character.Dexterity,
+            Constitution = character.Constitution,
+            Intelligence = character.Intelligence,
+            Wisdom = character.Wisdom,
+            Charisma = character.Charisma,
+            KilledInAction = character.KilledInAction
+        };
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveCharacter()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name))
+        {
+            Snackbar.Add("Naam is verplicht.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var request = new CharacterRequest(
+                _form.Name.Trim(),
+                _form.Race.Trim(),
+                _form.CharacterClass.Trim(),
+                _form.Level,
+                _form.Backstory.Trim(),
+                _form.Strength,
+                _form.Dexterity,
+                _form.Constitution,
+                _form.Intelligence,
+                _form.Wisdom,
+                _form.Charisma,
+                _form.KilledInAction);
+
+            if (_editingId.HasValue)
+            {
+                var ok = await ApiClient.UpdateCharacterAsync(_editingId.Value, request);
+                Snackbar.Add(ok ? "Personage bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
+            }
+            else
+            {
+                var created = await ApiClient.CreateCharacterAsync(CampaignId, request);
+                Snackbar.Add(created is not null ? "Personage aangemaakt." : "Aanmaken mislukt.",
+                    created is not null ? Severity.Success : Severity.Error);
+            }
+
+            _dialogOpen = false;
+            await LoadCharactersAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void OpenDeleteDialog(CharacterDto character)
+    {
+        _deletingCharacter = character;
+        _deleteDialogOpen = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_deletingCharacter is null) return;
+        _saving = true;
+        try
+        {
+            var ok = await ApiClient.DeleteCharacterAsync(_deletingCharacter.Id);
+            _deleteDialogOpen = false;
+            Snackbar.Add(ok ? "Personage verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
+            if (ok) await LoadCharactersAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private static int Modifier(int score) => (int)Math.Floor((score - 10) / 2.0);
+
+    private static string AbilityHelperText(int score)
+    {
+        var mod = Modifier(score);
+        return $"Modifier: {(mod >= 0 ? "+" : "")}{mod}";
+    }
+
+    private static IEnumerable<(string Label, int Score)> AbilityScores(CharacterDto c) =>
+    [
+        ("STR", c.Strength),
+        ("DEX", c.Dexterity),
+        ("CON", c.Constitution),
+        ("INT", c.Intelligence),
+        ("WIS", c.Wisdom),
+        ("CHA", c.Charisma)
+    ];
+
+    private record AbilityFieldProp(Func<CharacterFormModel, int> Getter, Action<CharacterFormModel, int> Setter);
+
+    private static IEnumerable<(string Label, AbilityFieldProp Prop)> AbilityScoreFields() =>
+    [
+        ("STR", new(m => m.Strength,    (m, v) => m.Strength    = v)),
+        ("DEX", new(m => m.Dexterity,   (m, v) => m.Dexterity   = v)),
+        ("CON", new(m => m.Constitution,(m, v) => m.Constitution = v)),
+        ("INT", new(m => m.Intelligence,(m, v) => m.Intelligence = v)),
+        ("WIS", new(m => m.Wisdom,      (m, v) => m.Wisdom       = v)),
+        ("CHA", new(m => m.Charisma,    (m, v) => m.Charisma     = v))
+    ];
+
+    private class CharacterFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Race { get; set; } = string.Empty;
+        public string CharacterClass { get; set; } = string.Empty;
+        public int Level { get; set; } = 1;
+        public string Backstory { get; set; } = string.Empty;
+        public int Strength { get; set; } = 10;
+        public int Dexterity { get; set; } = 10;
+        public int Constitution { get; set; } = 10;
+        public int Intelligence { get; set; } = 10;
+        public int Wisdom { get; set; } = 10;
+        public int Charisma { get; set; } = 10;
+        public bool KilledInAction { get; set; }
+    }
+}

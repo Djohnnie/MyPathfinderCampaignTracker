@@ -99,4 +99,38 @@ public class ApiClient(
         var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/players/{userId}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<CharacterDto>> GetCharactersAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<CharacterDto>>($"/api/characters/?campaignId={campaignId}") ?? [];
+    }
+
+    public async Task<CharacterDto?> GetCharacterAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<CharacterDto>($"/api/characters/{id}");
+    }
+
+    public async Task<CharacterDto?> CreateCharacterAsync(Guid campaignId, CharacterRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/characters/?campaignId={campaignId}", request);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<CharacterDto>();
+    }
+
+    public async Task<bool> UpdateCharacterAsync(Guid id, CharacterRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/characters/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteCharacterAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/characters/{id}");
+        return response.IsSuccessStatusCode;
+    }
 }

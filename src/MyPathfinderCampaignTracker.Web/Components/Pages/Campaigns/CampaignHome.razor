@@ -89,14 +89,22 @@ else
     }
 
     <MudPaper Elevation="0" Class="pa-6" Style="border: 1px dashed var(--mud-palette-lines-default); background: transparent;">
-        <div class="d-flex align-center" style="gap: 12px;">
-            <MudIcon Icon="@Icons.Material.Filled.Construction" Color="Color.Warning" Size="Size.Large" />
-            <div>
-                <MudText Typo="Typo.h6" Style="font-weight: 600;">Meer functies komen eraan</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                    Sessieverslagen, personages en andere campagnefuncties worden hier toegevoegd.
-                </MudText>
+        <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
+            <div class="d-flex align-center" style="gap: 12px;">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" Size="Size.Large" />
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Personages</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Bekijk en beheer de personages van deze campagne.
+                    </MudText>
+                </div>
             </div>
+            <MudButton Href="@($"/campaigns/{Id}/characters")"
+                       Variant="Variant.Filled" Color="Color.Primary"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       Style="text-transform: none; font-weight: 600;">
+                Personages bekijken
+            </MudButton>
         </div>
     </MudPaper>
 }
