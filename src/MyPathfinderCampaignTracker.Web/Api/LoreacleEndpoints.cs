@@ -27,7 +27,7 @@ public static class LoreacleEndpoints
                 var recapSummaries = recaps
                     .OrderByDescending(r => r.Number)
                     .Take(10)
-                    .Select(r => $"Recap {r.Number} – {r.Title}")
+                    .Select(r => $"Recap {r.Number} – {r.Title} ({r.Date:yyyy-MM-dd}):\n{r.Contents}")
                     .ToList();
 
                 var characterSummaries = characters

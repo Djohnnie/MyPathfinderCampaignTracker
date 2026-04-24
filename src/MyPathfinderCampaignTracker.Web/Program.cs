@@ -16,7 +16,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
 
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        options.MaxBufferedUnacknowledgedRenderBatches = 10;
+    });
+
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+});
 
 builder.Services.AddCascadingAuthenticationState();
 

@@ -44,10 +44,14 @@ public static class InfrastructureServiceExtensions
                     .GetChatClient(model)
                     .AsIChatClient());
             services.AddSingleton<ILoreacleService, LoreacleService>();
+            services.AddSingleton<IRecapTitleGeneratorService, RecapTitleGeneratorService>();
+            services.AddSingleton<IRecapFormatterService, RecapFormatterService>();
         }
         else
         {
             services.AddSingleton<ILoreacleService, NoOpLoreacleService>();
+            services.AddSingleton<IRecapTitleGeneratorService, NoOpRecapTitleGeneratorService>();
+            services.AddSingleton<IRecapFormatterService, NoOpRecapFormatterService>();
         }
 
         return services;

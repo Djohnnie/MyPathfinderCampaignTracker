@@ -180,6 +180,24 @@ public class ApiClient(
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<string?> GenerateRecapTitleAsync(string contents)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync("/api/recaps/generate-title", new RecapGenerateTitleRequest(contents));
+        if (!response.IsSuccessStatusCode) return null;
+        var result = await response.Content.ReadFromJsonAsync<RecapGenerateTitleResponse>();
+        return result?.Title;
+    }
+
+    public async Task<string?> FormatRecapContentsAsync(string contents)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync("/api/recaps/format-contents", new RecapFormatContentsRequest(contents));
+        if (!response.IsSuccessStatusCode) return null;
+        var result = await response.Content.ReadFromJsonAsync<RecapFormatContentsResponse>();
+        return result?.FormattedContents;
+    }
+
     public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)
     {
         var client = await CreateClientAsync();

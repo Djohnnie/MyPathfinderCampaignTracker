@@ -28,21 +28,20 @@ else
     }
     else
     {
-        <div class="d-flex flex-column" style="gap: 16px;">
+        <MudExpansionPanels MultiExpansion="true" Elevation="0">
             @foreach (var recap in _recaps)
             {
-                <MudPaper Elevation="0" Class="pa-6 card-hover fantasy-card">
-                    <div class="d-flex align-start justify-space-between flex-wrap" style="gap: 8px;">
-                        <div style="flex: 1; min-width: 0;">
-                            <div class="d-flex align-center flex-wrap mb-1" style="gap: 10px;">
+                <MudExpansionPanel Style="border: 1px solid var(--mud-palette-lines-default); margin-bottom: 8px; border-radius: 4px;">
+                    <TitleContent>
+                        <div class="d-flex align-center justify-space-between flex-grow-1 flex-wrap" style="gap: 8px; min-width: 0;">
+                            <div class="d-flex align-center flex-wrap" style="gap: 10px; min-width: 0;">
                                 <MudChip T="string" Color="Color.Primary" Size="Size.Small"
                                          Variant="Variant.Filled" Style="font-weight: 700;">
                                     Terugblik @recap.Number
                                 </MudChip>
-                                <MudText Typo="Typo.h6" Style="font-weight: 700;">@recap.Title</MudText>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">@recap.Title</MudText>
                             </div>
-
-                            <div class="d-flex align-center flex-wrap mb-3" style="gap: 12px;">
+                            <div class="d-flex align-center flex-wrap" style="gap: 12px; margin-right: 8px;">
                                 <div class="d-flex align-center" style="gap: 4px;">
                                     <MudIcon Icon="@Icons.Material.Filled.Map" Size="Size.Small" Color="Color.Secondary" />
                                     <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Secondary"
@@ -57,22 +56,23 @@ else
                                         @recap.Date.ToString("d MMMM yyyy")
                                     </MudText>
                                 </div>
+                                <MudTooltip Text="Bekijk terugblikken van deze campagne">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                                   Color="Color.Primary" Size="Size.Small"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/campaigns/{recap.CampaignId}/recaps"))" />
+                                </MudTooltip>
                             </div>
-
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="white-space: pre-wrap; line-height: 1.7;">
-                                @(recap.Contents.Length > 300 ? recap.Contents[..300] + "…" : recap.Contents)
-                            </MudText>
                         </div>
-
-                        <MudTooltip Text="Bekijk terugblikken van deze campagne">
-                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
-                                           Color="Color.Primary" Size="Size.Small"
-                                           OnClick="@(() => Navigation.NavigateTo($"/campaigns/{recap.CampaignId}/recaps"))" />
-                        </MudTooltip>
-                    </div>
-                </MudPaper>
+                    </TitleContent>
+                    <ChildContent>
+                        <MudDivider Class="mb-4" />
+                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.7;">
+                            @recap.Contents
+                        </MudText>
+                    </ChildContent>
+                </MudExpansionPanel>
             }
-        </div>
+        </MudExpansionPanels>
     }
 }
 

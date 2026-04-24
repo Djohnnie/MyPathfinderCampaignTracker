@@ -92,6 +92,30 @@ public static class RecapEndpoints
             return deleted ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 
+        group.MapPost("/generate-title", async (
+            RecapGenerateTitleRequest request,
+            IRecapTitleGeneratorService titleGeneratorService,
+            CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Contents))
+                return Results.BadRequest("Contents is required.");
+
+            var title = await titleGeneratorService.GenerateTitleAsync(request.Contents, ct);
+            return Results.Ok(new RecapGenerateTitleResponse(title));
+        }).RequireAuthorization("ApiAuth");
+
+        group.MapPost("/format-contents", async (
+            RecapFormatContentsRequest request,
+            IRecapFormatterService formatterService,
+            CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Contents))
+                return Results.BadRequest("Contents is required.");
+
+            var formatted = await formatterService.FormatContentsAsync(request.Contents, ct);
+            return Results.Ok(new RecapFormatContentsResponse(formatted));
+        }).RequireAuthorization("ApiAuth");
+
         return routes;
     }
 }

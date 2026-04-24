@@ -22,7 +22,7 @@ public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
 
         {characters}
 
-        ## Recent Recaps
+        ## Campaign History (Session Recaps)
 
         {recaps}
 
@@ -30,6 +30,15 @@ public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
         Keep your answers focused and useful. Respond in the same language as the user.
         Separate each sentence or thought with the token [BR] so they appear as distinct chat bubbles.
         Do not use markdown formatting. Do not use bullet points or headers. Only use [BR] to separate sentences.
+
+        ## Your Knowledge Boundaries — Critical Rules
+
+        You may ONLY draw on the information explicitly provided above: the campaign description, the session recaps, the character list, and messages from the chat history.
+        Do NOT use any knowledge from your training data about this campaign, its source material, published adventures, novels, or any other external source.
+        Do NOT reveal future events, plot twists, villain plans, or any information that has not yet appeared in the provided recaps or chat — even if you know it from training data.
+        The players are building their own story. It is not your place to spoil, hint at, or influence that story with outside knowledge.
+        If a question cannot be answered from the provided sources, say honestly that you do not know yet — the story has not reached that point.
+        You may give general advice, tactical suggestions, or creative inspiration as long as it is based solely on what has already happened in the campaign as described in the sources above.
 
         ## Important!
 
@@ -46,7 +55,7 @@ public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
         CancellationToken cancellationToken = default)
     {
         var recapsText = recapSummaries.Count > 0
-            ? string.Join("\n", recapSummaries.Select(r => $"- {r}"))
+            ? string.Join("\n\n", recapSummaries)
             : "(No recaps available yet)";
 
         var charactersText = characterSummaries.Count > 0

@@ -19,3 +19,9 @@ public record RecapRequest(
     DateTime Date,
     string Title,
     string Contents);
+
+public record RecapGenerateTitleRequest(string Contents);
+public record RecapGenerateTitleResponse(string Title);
+
+public record RecapFormatContentsRequest(string Contents);
+public record RecapFormatContentsResponse(string FormattedContents);
