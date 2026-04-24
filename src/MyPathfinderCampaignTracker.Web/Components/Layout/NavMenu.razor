@@ -1,0 +1,24 @@
+﻿<MudNavMenu Class="mt-2">
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">
+                Dashboard
+            </MudNavLink>
+
+            <AuthorizeView Roles="Admin" Context="adminCtx">
+                <Authorized>
+                    <MudDivider Class="my-2" />
+                    <MudText Typo="Typo.overline" Class="px-4 mud-text-secondary">Beheer</MudText>
+                    <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.ManageAccounts">
+                        Gebruikersbeheer
+                    </MudNavLink>
+                </Authorized>
+            </AuthorizeView>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Inloggen</MudNavLink>
+            <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Registreren</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>
+

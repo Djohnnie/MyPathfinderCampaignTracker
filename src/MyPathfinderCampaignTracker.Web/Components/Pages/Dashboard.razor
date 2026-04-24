@@ -1,0 +1,48 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>Dashboard — Pathfinder Campaign Tracker</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight: 700;">
+    Dashboard
+</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Uw Pathfinder Campaign Tracker</MudText>
+
+<AuthorizeView>
+    <Authorized>
+        <MudPaper Elevation="0" Class="pa-6 mb-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+            <MudText Typo="Typo.h5" Class="mb-1" Style="font-weight: 600;">
+                Welkom terug, <strong>@context.User.Identity?.Name</strong>!
+            </MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Uw Pathfinder Campaign Tracker is klaar. Campagnefuncties komen eraan!
+            </MudText>
+        </MudPaper>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.Map" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Campagnes</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Beheer uw campagnes</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Personages</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Volg uw gezelschap</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Tertiary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Sessies</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Leg sessienotities vast</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+</AuthorizeView>
+

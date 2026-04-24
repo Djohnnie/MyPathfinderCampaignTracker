@@ -1,0 +1,129 @@
+@page "/admin/users"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject ApiClient Api
+@inject ISnackbar Snackbar
+
+<PageTitle>Gebruikersbeheer — Pathfinder Campaign Tracker</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight: 700;">
+    Gebruikersbeheer
+</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Goedkeuren, promoveren en beheren van gebruikers</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudDataGrid T="UserDto"
+                 Items="_users"
+                 Striped="true"
+                 Hover="true"
+                 Bordered="true"
+                 Elevation="2"
+                 Dense="true">
+        <Columns>
+            <PropertyColumn Property="u => u.Username" Title="Gebruikersnaam" />
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    @if (context.Item.IsApproved)
+                    {
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">Goedgekeurd</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Color="Color.Warning" Size="Size.Small" Icon="@Icons.Material.Filled.HourglassEmpty">In afwachting</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Rol">
+                <CellTemplate>
+                    @if (context.Item.IsAdmin)
+                    {
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.AdminPanelSettings">Beheerder</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Color="Color.Default" Size="Size.Small" Icon="@Icons.Material.Filled.Person">Gebruiker</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="u => u.CreatedAt" Title="Geregistreerd" Format="yyyy-MM-dd HH:mm" />
+            <TemplateColumn Title="Acties" CellStyle="min-width:220px">
+                <CellTemplate>
+                    @if (!context.Item.IsApproved)
+                    {
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.Check"
+                                   Class="mr-2"
+                                   OnClick="() => ApproveUser(context.Item.Id)">
+                            Goedkeuren
+                        </MudButton>
+                    }
+                    @if (!context.Item.IsAdmin)
+                    {
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.ArrowUpward"
+                                   OnClick="() => PromoteUser(context.Item.Id)">
+                            Promoveren
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   StartIcon="@Icons.Material.Filled.ArrowDownward"
+                                   OnClick="() => DemoteUser(context.Item.Id)">
+                            Degraderen
+                        </MudButton>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+}
+
+@code {
+    private List<UserDto> _users = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        _users = await Api.GetUsersAsync();
+        _loading = false;
+    }
+
+    private async Task ApproveUser(Guid userId)
+    {
+        var success = await Api.ApproveUserAsync(userId);
+        Snackbar.Add(success ? "Gebruiker goedgekeurd." : "Goedkeuren mislukt.", success ? Severity.Success : Severity.Error);
+        if (success) await LoadUsers();
+    }
+
+    private async Task PromoteUser(Guid userId)
+    {
+        var success = await Api.PromoteUserAsync(userId);
+        Snackbar.Add(success ? "Gebruiker gepromoveerd tot beheerder." : "Promoveren mislukt.", success ? Severity.Success : Severity.Error);
+        if (success) await LoadUsers();
+    }
+
+    private async Task DemoteUser(Guid userId)
+    {
+        var success = await Api.DemoteUserAsync(userId);
+        Snackbar.Add(success ? "Gebruiker gedegradeerd tot gebruiker." : "Degraderen mislukt.", success ? Severity.Success : Severity.Error);
+        if (success) await LoadUsers();
+    }
+}

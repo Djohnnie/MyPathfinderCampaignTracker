@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyPathfinderCampaignTracker.Application/MyPathfinderCampaignTracker.Application.csproj" />
+    <Project Path="src/MyPathfinderCampaignTracker.Domain/MyPathfinderCampaignTracker.Domain.csproj" />
+    <Project Path="src/MyPathfinderCampaignTracker.Infrastructure/MyPathfinderCampaignTracker.Infrastructure.csproj" />
+    <Project Path="src/MyPathfinderCampaignTracker.Web/MyPathfinderCampaignTracker.Web.csproj" />
+  </Folder>
+</Solution>

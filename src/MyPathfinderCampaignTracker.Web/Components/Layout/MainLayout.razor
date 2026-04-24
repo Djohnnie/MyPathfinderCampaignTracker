@@ -1,0 +1,145 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject ApiClient ApiClient
+
+<MudThemeProvider @ref="_themeProvider" Theme="_theme" IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Dense="true" Class="appbar-blur">
+        <MudIconButton Icon="@(_drawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)"
+                       Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="ToggleDrawer"
+                       Class="hamburger-btn" />
+        <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;cursor:pointer;">
+            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="ml-2" />
+            <MudText Typo="Typo.h6" Class="ml-2" Style="font-weight:600;letter-spacing:0.5px;">Pathfinder Campaign Tracker</MudText>
+        </a>
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudTooltip Text="@(_isDarkMode ? "Naar lichtmodus" : "Naar donkermodus")">
+                    <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                                   Color="Color.Inherit" OnClick="ToggleTheme"
+                                   Class="theme-toggle-btn" />
+                </MudTooltip>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
+                         Class="mx-1" Icon="@Icons.Material.Filled.Person">
+                    @context.User.Identity?.Name
+                </MudChip>
+                <MudTooltip Text="Afmelden">
+                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
+                                   OnClick="@(() => Navigation.NavigateTo("/logout", forceLoad: true))" />
+                </MudTooltip>
+            </Authorized>
+            <NotAuthorized>
+                <MudTooltip Text="@(_isDarkMode ? "Naar lichtmodus" : "Naar donkermodus")">
+                    <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                                   Color="Color.Inherit" OnClick="ToggleTheme"
+                                   Class="theme-toggle-btn" />
+                </MudTooltip>
+                <MudButton Href="/login" Color="Color.Inherit" Variant="Variant.Text">Inloggen</MudButton>
+                <MudButton Href="/register" Color="Color.Inherit" Variant="Variant.Text">Registreren</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always"
+               Class="drawer-animate" Variant="DrawerVariant.Responsive">
+        <NavMenu />
+    </MudDrawer>
+
+    <MudMainContent Class="pt-16 px-4">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 page-enter">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Er is een onverwerkte fout opgetreden.
+    <a href="." class="reload">Herladen</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = null!;
+
+    private MudThemeProvider _themeProvider = null!;
+    private bool _isDarkMode;
+    private bool _darkModeInitialized;
+    private bool _isAuthenticated;
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#2563eb",
+            Secondary = "#f59e0b",
+            AppbarBackground = "rgba(255, 255, 255, 0.8)",
+            AppbarText = "#1e293b",
+            Background = "#f8fafc",
+            Surface = "#ffffff",
+            DrawerBackground = "#ffffff",
+            DrawerText = "#334155",
+            TableStriped = "#f1f5f9"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#60a5fa",
+            Secondary = "#fbbf24",
+            AppbarBackground = "rgba(15, 23, 42, 0.85)",
+            AppbarText = "#e2e8f0",
+            Background = "#0f172a",
+            Surface = "#1e293b",
+            DrawerBackground = "#1e293b",
+            DrawerText = "#cbd5e1",
+            TableStriped = "#1e293b"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["'Inter'", "'Roboto'", "'Helvetica'", "'Arial'", "sans-serif"]
+            }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px"
+        }
+    };
+
+    private void ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+        if (_isAuthenticated)
+            _ = ApiClient.SetDarkModeAsync(_isDarkMode);
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+        if (_isAuthenticated)
+        {
+            var claim = authState.User.FindFirst("dark_mode")?.Value;
+            _isDarkMode = claim == "true";
+            _darkModeInitialized = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_darkModeInitialized)
+        {
+            _darkModeInitialized = true;
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
+

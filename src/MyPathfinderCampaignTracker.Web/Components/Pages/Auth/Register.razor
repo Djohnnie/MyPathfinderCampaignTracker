@@ -1,0 +1,119 @@
+@page "/register"
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<PageTitle>Registreren — Pathfinder Campaign Tracker</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall">
+    <MudPaper Class="pa-8 mt-8" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <div class="d-flex flex-column align-center mb-4">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" Rounded="true">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5" Class="mt-3" Style="font-weight: 600;">Account aanmaken</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Doe mee aan de Pathfinder Campaign Tracker</MudText>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_successMessage))
+        {
+            <MudAlert Severity="Severity.Success" Class="mb-4" Variant="Variant.Outlined">@_successMessage</MudAlert>
+            <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       Size="Size.Large" EndIcon="@Icons.Material.Filled.Login"
+                       Style="text-transform: none; font-weight: 600;">
+                Naar inloggen
+            </MudButton>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4" Variant="Variant.Outlined" Dense="true">@_error</MudAlert>
+            }
+
+            <form @onsubmit="HandleRegister" @onsubmit:preventDefault>
+
+            <MudTextField @bind-Value="_username"
+                          Label="Gebruikersnaam"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          Class="mb-4"
+                          Disabled="_loading"
+                          autocomplete="username" />
+
+            <MudTextField @bind-Value="_password"
+                          Label="Wachtwoord"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock"
+                          InputType="InputType.Password"
+                          Class="mb-4"
+                          Disabled="_loading"
+                          autocomplete="new-password" />
+
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Disabled="_loading"
+                       Style="text-transform: none; font-weight: 600;">
+                @if (_loading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                Account aanmaken
+            </MudButton>
+
+            </form>
+
+            <MudDivider Class="my-4" />
+
+            <MudText Typo="Typo.body2" Align="Align.Center">
+                Al een account? <MudLink Href="/login">Aanmelden</MudLink>
+            </MudText>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private string? _error;
+    private string? _successMessage;
+    private bool _loading;
+
+    private async Task HandleRegister()
+    {
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Gebruikersnaam en wachtwoord zijn verplicht.";
+            return;
+        }
+
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            var result = await UserService.RegisterAsync(_username, _password);
+            switch (result)
+            {
+                case RegisterResult.Success:
+                    var allUsers = await UserService.GetAllUsersAsync();
+                    _successMessage = allUsers.Count == 1
+                        ? "Welkom! U bent de eerste gebruiker en heeft beheerdersrechten gekregen. U kunt nu inloggen."
+                        : "Registratie geslaagd! Uw account wacht op goedkeuring van een beheerder.";
+                    break;
+                case RegisterResult.UserAlreadyExists:
+                    _error = "Die gebruikersnaam is al bezet. Kies een andere.";
+                    break;
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
+

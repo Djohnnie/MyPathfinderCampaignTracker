@@ -1,0 +1,112 @@
+@page "/login"
+@inject IUserService UserService
+@inject LoginTicketService TicketService
+@inject NavigationManager Navigation
+
+<PageTitle>Inloggen — Pathfinder Campaign Tracker</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall">
+    <MudPaper Class="pa-8 mt-8" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <div class="d-flex flex-column align-center mb-4">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" Rounded="true">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5" Class="mt-3" Style="font-weight: 600;">Welkom terug</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Meld u aan bij uw account</MudText>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4" Variant="Variant.Outlined" Dense="true">@_error</MudAlert>
+        }
+
+        <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+
+        <MudTextField @bind-Value="_username"
+                      Label="Gebruikersnaam"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      Class="mb-4"
+                      Disabled="_loading"
+                      autocomplete="username" />
+
+        <MudTextField @bind-Value="_password"
+                      Label="Wachtwoord"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Lock"
+                      InputType="InputType.Password"
+                      Class="mb-4"
+                      Disabled="_loading"
+                      autocomplete="current-password" />
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   Disabled="_loading"
+                   Style="text-transform: none; font-weight: 600;">
+            @if (_loading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Aanmelden
+        </MudButton>
+
+        </form>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            Nog geen account? <MudLink Href="/register">Hier registreren</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private string? _error;
+    private bool _loading;
+
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? ErrorParam { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (ErrorParam == "expired")
+            _error = "Uw sessie is verlopen. Meld u opnieuw aan.";
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Gebruikersnaam en wachtwoord zijn verplicht.";
+            return;
+        }
+
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            var result = await UserService.LoginAsync(_username, _password);
+            if (!result.Success)
+            {
+                _error = result.Error ?? "Inloggen mislukt. Controleer uw gegevens.";
+                return;
+            }
+
+            var ticket = TicketService.CreateTicket(result.User!.Id, result.User.Username, result.Token!, result.User.IsAdmin, result.User.IsDarkMode);
+            Navigation.NavigateTo($"/api/auth/login-callback?ticket={ticket}", forceLoad: true);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
+

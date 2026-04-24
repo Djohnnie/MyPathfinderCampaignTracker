@@ -1,0 +1,11 @@
+@page "/logout"
+@inject NavigationManager Navigation
+
+<PageTitle>Logging out...</PageTitle>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/api/auth/signout", forceLoad: true);
+    }
+}
