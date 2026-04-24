@@ -1,10 +1,14 @@
+using Azure.AI.OpenAI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyPathfinderCampaignTracker.Application.Interfaces;
+using MyPathfinderCampaignTracker.Infrastructure.AzureOpenAI;
 using MyPathfinderCampaignTracker.Infrastructure.Data;
 using MyPathfinderCampaignTracker.Infrastructure.Repositories;
 using MyPathfinderCampaignTracker.Infrastructure.Services;
+using System.ClientModel;
 
 namespace MyPathfinderCampaignTracker.Infrastructure;
 
@@ -28,6 +32,23 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
+
+        var endpoint = configuration["AZURE_OPENAI_ENDPOINT"];
+        var apiKey = configuration["AZURE_OPENAI_KEY"];
+        var model = configuration["AZURE_OPENAI_MODEL"] ?? "gpt-4o";
+
+        if (!string.IsNullOrWhiteSpace(endpoint) && !string.IsNullOrWhiteSpace(apiKey))
+        {
+            services.AddSingleton<IChatClient>(_ =>
+                new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey))
+                    .GetChatClient(model)
+                    .AsIChatClient());
+            services.AddSingleton<ILoreacleService, LoreacleService>();
+        }
+        else
+        {
+            services.AddSingleton<ILoreacleService, NoOpLoreacleService>();
+        }
 
         return services;
     }

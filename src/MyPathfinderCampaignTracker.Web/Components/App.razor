@@ -26,6 +26,9 @@
         window.chatScrollToBottom = function () {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         };
+        window.loreacleScrollToBottom = function (element) {
+            if (element) { element.scrollTop = element.scrollHeight; }
+        };
         window.addBodyClass = function (cls) { document.body.classList.add(cls); };
         window.removeBodyClass = function (cls) { document.body.classList.remove(cls); };
     </script>

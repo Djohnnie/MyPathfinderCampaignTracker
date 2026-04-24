@@ -180,6 +180,15 @@ public class ApiClient(
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/loreacle", request);
+        if (!response.IsSuccessStatusCode) return null;
+        var result = await response.Content.ReadFromJsonAsync<LoreacleResponse>();
+        return result?.Reply;
+    }
+
     public async Task<List<ChatMessageDto>> GetChatMessagesAsync(Guid campaignId)
     {
         var client = await CreateClientAsync();

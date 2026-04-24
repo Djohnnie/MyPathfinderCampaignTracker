@@ -104,6 +104,7 @@ app.MapCampaignEndpoints();
 app.MapCharacterEndpoints();
 app.MapRecapEndpoints();
 app.MapChatEndpoints();
+app.MapLoreacleEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
