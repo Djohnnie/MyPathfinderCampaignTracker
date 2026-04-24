@@ -8,14 +8,14 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Dense="true" Class="appbar-blur">
+    <MudAppBar Elevation="1" Dense="true" Class="appbar-blur">
         <MudIconButton Icon="@(_drawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)"
                        Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="ToggleDrawer"
                        Class="hamburger-btn" />
         <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;cursor:pointer;">
-            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="ml-2" />
-            <MudText Typo="Typo.h6" Class="ml-2" Style="font-weight:600;letter-spacing:0.5px;">Pathfinder Campaign Tracker</MudText>
+            <MudIcon Icon="@Icons.Material.Filled.AutoStories" Class="ml-2" />
+            <MudText Class="ml-2 appbar-title">Pathfinder Campaign Tracker</MudText>
         </a>
         <MudSpacer />
         <AuthorizeView>
@@ -77,38 +77,67 @@
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#2563eb",
-            Secondary = "#f59e0b",
-            AppbarBackground = "rgba(255, 255, 255, 0.8)",
-            AppbarText = "#1e293b",
-            Background = "#f8fafc",
-            Surface = "#ffffff",
-            DrawerBackground = "#ffffff",
-            DrawerText = "#334155",
-            TableStriped = "#f1f5f9"
+            Primary = "#8B1A1A",
+            PrimaryContrastText = "#F5EDD6",
+            Secondary = "#B8860B",
+            SecondaryContrastText = "#1A0A00",
+            AppbarBackground = "#6B1212",
+            AppbarText = "#F5EDD6",
+            Background = "#F2E8CE",
+            BackgroundGray = "#E8D9B0",
+            Surface = "#FAF4E4",
+            DrawerBackground = "#2D1A0A",
+            DrawerText = "#E8D099",
+            DrawerIcon = "#C8A951",
+            TextPrimary = "#1A0A00",
+            TextSecondary = "#5C3D1E",
+            LinesDefault = "rgba(139, 26, 26, 0.2)",
+            LinesInputs = "rgba(139, 26, 26, 0.35)",
+            Divider = "rgba(139, 26, 26, 0.2)",
+            TableStriped = "#EDE0C0",
+            OverlayDark = "rgba(26, 10, 0, 0.55)",
         },
         PaletteDark = new PaletteDark
         {
-            Primary = "#60a5fa",
-            Secondary = "#fbbf24",
-            AppbarBackground = "rgba(15, 23, 42, 0.85)",
-            AppbarText = "#e2e8f0",
-            Background = "#0f172a",
-            Surface = "#1e293b",
-            DrawerBackground = "#1e293b",
-            DrawerText = "#cbd5e1",
-            TableStriped = "#1e293b"
+            Primary = "#D4AF37",
+            PrimaryContrastText = "#0D0806",
+            Secondary = "#C41E3A",
+            SecondaryContrastText = "#F5EDD6",
+            AppbarBackground = "#0D0806",
+            AppbarText = "#D4AF37",
+            Background = "#0D0806",
+            BackgroundGray = "#1A0E06",
+            Surface = "#1A0E06",
+            DrawerBackground = "#100800",
+            DrawerText = "#C8A951",
+            DrawerIcon = "#C8A951",
+            TextPrimary = "#F5EDD6",
+            TextSecondary = "#C8A951",
+            LinesDefault = "rgba(212, 175, 55, 0.2)",
+            LinesInputs = "rgba(212, 175, 55, 0.35)",
+            Divider = "rgba(212, 175, 55, 0.15)",
+            TableStriped = "#1A0E06",
+            OverlayDark = "rgba(0, 0, 0, 0.72)",
         },
         Typography = new Typography
         {
             Default = new DefaultTypography
             {
-                FontFamily = ["'Inter'", "'Roboto'", "'Helvetica'", "'Arial'", "sans-serif"]
-            }
+                FontFamily = ["'Crimson Text'", "'Georgia'", "'Times New Roman'", "serif"],
+                FontSize = "1.0625rem",
+                LineHeight = "1.6",
+            },
+            H1 = new H1Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "700" },
+            H2 = new H2Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "700" },
+            H3 = new H3Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "600" },
+            H4 = new H4Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "600" },
+            H5 = new H5Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "600" },
+            H6 = new H6Typography { FontFamily = ["'Cinzel'", "'Georgia'", "serif"], FontWeight = "600" },
+            Overline = new OverlineTypography { FontFamily = ["'Cinzel'", "serif"], LetterSpacing = "0.12em" },
         },
         LayoutProperties = new LayoutProperties
         {
-            DefaultBorderRadius = "12px"
+            DefaultBorderRadius = "4px"
         }
     };
 

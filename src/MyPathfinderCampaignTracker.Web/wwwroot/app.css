@@ -1,12 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* =====================================================
+   PATHFINDER CAMPAIGN TRACKER — FANTASY THEME
+   Fonts: Cinzel (headings), Crimson Text (body)
+   Palette: Crimson + Aged Gold + Parchment / Tavern Dark
+   ===================================================== */
 
 html, body {
-    font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-family: 'Crimson Text', 'Georgia', 'Times New Roman', serif;
+    font-size: 1.0625rem;
+    line-height: 1.6;
 }
 
 h1:focus {
     outline: none;
 }
+
+/* ===== FANTASY TYPOGRAPHY ===== */
+
+.mud-typography-h1,
+.mud-typography-h2,
+.mud-typography-h3,
+.mud-typography-h4,
+.mud-typography-h5,
+.mud-typography-h6 {
+    font-family: 'Cinzel', 'Georgia', serif !important;
+    letter-spacing: 0.04em;
+}
+
+.mud-typography-overline,
+.mud-typography-subtitle1,
+.mud-typography-subtitle2 {
+    font-family: 'Cinzel', serif !important;
+    letter-spacing: 0.1em;
+}
+
+/* App bar title */
+.appbar-title {
+    font-family: 'Cinzel Decorative', 'Cinzel', serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    font-size: 0.88rem !important;
+}
+
+/* ===== VALIDATION ===== */
 
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
@@ -30,40 +65,42 @@ h1:focus {
         content: "An error has occurred."
     }
 
-/* Frosted glass appbar */
+/* ===== APP BAR — solid crimson / dark gold border ===== */
+
 ::deep .appbar-blur {
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
-/* Hamburger icon rotation */
+/* ===== ICON BUTTON ANIMATIONS ===== */
+
 ::deep .hamburger-btn {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
     ::deep .hamburger-btn:hover {
-        transform: scale(1.1);
+        transform: scale(1.15);
     }
 
-/* Theme toggle spin */
 ::deep .theme-toggle-btn {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
     ::deep .theme-toggle-btn:hover {
-        transform: rotate(30deg) scale(1.1);
+        transform: rotate(36deg) scale(1.15);
     }
 
-/* Page content fade + slide in */
+/* ===== PAGE ENTER ANIMATION ===== */
+
 ::deep .page-enter {
-    animation: pageEnter 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: pageEnter 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes pageEnter {
     from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(14px);
     }
 
     to {
@@ -72,45 +109,184 @@ h1:focus {
     }
 }
 
-/* Drawer smooth slide */
+/* ===== DRAWER ===== */
+
 ::deep .drawer-animate {
     transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dashboard card hover effect */
+/* ===== CARD HOVER ===== */
+
 .card-hover {
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease !important;
 }
 
     .card-hover:hover {
         border-color: var(--mud-palette-primary) !important;
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18) !important;
     }
 
-/* Smooth transitions for theme switching */
+/* ===== SMOOTH THEME TRANSITION ===== */
+
 *, *::before, *::after {
     transition: background-color 0.3s ease, color 0.15s ease, border-color 0.3s ease;
 }
 
-/* Styled native inputs for SSR forms (login / register) */
+/* ===== FANTASY CARD ===== */
+/* Crimson border with corner diamond ornaments */
+
+.fantasy-card {
+    border: 1px solid var(--mud-palette-primary) !important;
+    position: relative;
+}
+
+    .fantasy-card::before,
+    .fantasy-card::after {
+        content: '◆';
+        position: absolute;
+        color: var(--mud-palette-primary);
+        font-size: 10px;
+        line-height: 1;
+        background: var(--mud-palette-surface);
+        padding: 0 5px;
+        z-index: 1;
+        opacity: 0.85;
+    }
+
+    .fantasy-card::before {
+        top: -7px;
+        left: 18px;
+    }
+
+    .fantasy-card::after {
+        bottom: -7px;
+        right: 18px;
+    }
+
+/* ===== FANTASY SECTION DIVIDER ===== */
+
+.fantasy-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 2px 0 6px 0;
+    color: var(--mud-palette-primary);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+    .fantasy-divider::before,
+    .fantasy-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--mud-palette-primary);
+        opacity: 0.4;
+    }
+
+/* ===== PAGE HEADER ACCENT LINE ===== */
+
+.pf-section-title {
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+    .pf-section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 48px;
+        height: 2px;
+        background: linear-gradient(to right, var(--mud-palette-primary), var(--mud-palette-secondary), transparent);
+    }
+
+/* ===== CUSTOM SCROLLBAR ===== */
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--mud-palette-primary);
+    border-radius: 3px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--mud-palette-secondary);
+    }
+
+/* ===== NAVIGATION — Cinzel font ===== */
+
+::deep .mud-nav-link .mud-nav-link-text {
+    font-family: 'Cinzel', serif !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* ===== TABLE HEADERS ===== */
+
+::deep .mud-table-head .mud-table-cell {
+    font-family: 'Cinzel', serif !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.07em !important;
+    text-transform: uppercase;
+}
+
+/* ===== BUTTON LABEL — Cinzel ===== */
+
+::deep .mud-button-root .mud-button-label {
+    font-family: 'Cinzel', serif !important;
+    letter-spacing: 0.06em !important;
+    font-size: 0.76rem !important;
+}
+
+/* ===== DIALOG TITLE ===== */
+
+::deep .mud-dialog-title {
+    font-family: 'Cinzel', serif !important;
+    letter-spacing: 0.04em !important;
+}
+
+/* ===== CHIP TEXT ===== */
+
+::deep .mud-chip .mud-chip-content {
+    font-family: 'Cinzel', serif !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.04em !important;
+}
+
+/* ===== SSR INPUTS (Login / Register) ===== */
+
 .mud-input-ssr {
     width: 100%;
     padding: 14px 14px 14px 42px;
-    border: 1px solid rgba(0, 0, 0, 0.23);
-    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
     font-size: 1rem;
-    font-family: 'Inter', 'Roboto', sans-serif;
+    font-family: 'Crimson Text', 'Georgia', serif;
     background: transparent;
     color: inherit;
     box-sizing: border-box;
     outline: none;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
     .mud-input-ssr:focus {
-        border-color: #2563eb;
+        border-color: #8B1A1A;
         border-width: 2px;
         padding: 13px 13px 13px 41px;
+        box-shadow: 0 0 0 3px rgba(139, 26, 26, 0.15);
     }
 
 .mud-input-ssr-wrapper {
@@ -132,8 +308,10 @@ h1:focus {
 
     .mud-input-ssr-wrapper label {
         display: block;
-        font-size: 0.75rem;
-        font-weight: 500;
+        font-size: 0.72rem;
+        font-weight: 600;
+        font-family: 'Cinzel', serif;
+        letter-spacing: 0.06em;
         color: rgba(0, 0, 0, 0.6);
         margin-bottom: 4px;
         padding-left: 2px;

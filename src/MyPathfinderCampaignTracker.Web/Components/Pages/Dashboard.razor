@@ -5,34 +5,38 @@
 
 <PageTitle>Dashboard — Pathfinder Campaign Tracker</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-1" Style="font-weight: 700;">Dashboard</MudText>
+<MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Avontuursbord</MudText>
 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Uw Pathfinder Campaign Tracker</MudText>
 
 <AuthorizeView>
     <Authorized>
-        <MudPaper Elevation="0" Class="pa-6 mb-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
-            <MudText Typo="Typo.h5" Class="mb-1" Style="font-weight: 600;">
-                Welkom terug, <strong>@context.User.Identity?.Name</strong>!
-            </MudText>
+        <MudPaper Elevation="0" Class="pa-6 mb-6 card-hover fantasy-card"
+                  Style="background: var(--mud-palette-surface);">
+            <div class="d-flex align-center mb-2" style="gap: 10px;">
+                <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Primary" />
+                <MudText Typo="Typo.h5" Style="font-weight: 600; margin: 0;">
+                    Welkom terug, <strong>@context.User.Identity?.Name</strong>!
+                </MudText>
+            </div>
             <MudText Typo="Typo.body1" Color="Color.Secondary">
-                Uw Pathfinder Campaign Tracker is klaar voor gebruik.
+                Moge uw avonturen glorievol zijn en uw campagnes legendarisch.
             </MudText>
         </MudPaper>
 
         @if (_latestCampaign is not null)
         {
-            <MudText Typo="Typo.h6" Style="font-weight: 600;" Class="mb-3">Laatste campagne</MudText>
-            <MudPaper Elevation="0" Class="pa-6 mb-6 card-hover" Style="border: 1px solid var(--mud-palette-primary-default, #2563eb);">
+            <MudText Typo="Typo.h6" Class="mb-3 pf-section-title">Meest Recente Campagne</MudText>
+            <MudPaper Elevation="0" Class="pa-6 mb-6 card-hover fantasy-card">
                 <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
                     <div>
-                        <div class="d-flex align-center mb-1" style="gap: 8px;">
+                        <div class="d-flex align-center mb-2" style="gap: 8px;">
                             <MudIcon Icon="@Icons.Material.Filled.Map" Color="Color.Primary" />
                             <MudText Typo="Typo.h6" Style="font-weight: 600;">@_latestCampaign.Title</MudText>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(_latestCampaign.Description))
                         {
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
-                                @(_latestCampaign.Description.Length > 120 ? _latestCampaign.Description[..120] + "…" : _latestCampaign.Description)
+                            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-3">
+                                @(_latestCampaign.Description.Length > 140 ? _latestCampaign.Description[..140] + "…" : _latestCampaign.Description)
                             </MudText>
                         }
                         <div class="d-flex flex-wrap" style="gap: 4px;">
@@ -46,8 +50,7 @@
                     </div>
                     <MudButton Href="@($"/campaigns/{_latestCampaign.Id}")"
                                Variant="Variant.Filled" Color="Color.Primary"
-                               EndIcon="@Icons.Material.Filled.ArrowForward"
-                               Style="text-transform: none; font-weight: 600;">
+                               EndIcon="@Icons.Material.Filled.ArrowForward">
                         Openen
                     </MudButton>
                 </div>
@@ -58,22 +61,22 @@
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
                     <MudIcon Icon="@Icons.Material.Filled.Map" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Campagnes</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Beheer uw campagnes</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-1">Campagnes</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">Beheer uw epische avonturen</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
-                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Personages</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Volg uw gezelschap</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Class="mb-1">Personages</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">Volg uw heldengezelschap</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
-                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Tertiary" Class="mb-3" />
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Sessies</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Leg sessienotities vast</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Class="mb-1">Terugblikken</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">Kroniek van uw sessies</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
