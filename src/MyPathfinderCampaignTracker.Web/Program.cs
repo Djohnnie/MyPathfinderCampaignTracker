@@ -102,6 +102,7 @@ app.MapUserManagementEndpoints();
 app.MapProfileEndpoints();
 app.MapCampaignEndpoints();
 app.MapCharacterEndpoints();
+app.MapRecapEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

@@ -1,0 +1,309 @@
+@page "/campaigns/{CampaignId:guid}/recaps"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@using System.Security.Claims
+
+<PageTitle>Terugblikken — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else
+{
+    <div class="d-flex align-center mb-2" style="gap: 12px;">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo($"/campaigns/{CampaignId}"))" />
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Terugblikken</MudText>
+            @if (_campaignTitle is not null)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_campaignTitle</MudText>
+            }
+        </div>
+    </div>
+
+    <div class="d-flex justify-end mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PostAdd"
+                   OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+            Nieuwe terugblik
+        </MudButton>
+    </div>
+
+    @if (_recaps.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
+                  Style="border: 1px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">Nog geen terugblikken</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Klik op "Nieuwe terugblik" om te beginnen.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <div class="d-flex flex-column" style="gap: 16px;">
+            @foreach (var recap in _recaps)
+            {
+                <MudPaper Elevation="0" Class="pa-6 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <div class="d-flex align-start justify-space-between flex-wrap" style="gap: 8px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="d-flex align-center flex-wrap mb-1" style="gap: 10px;">
+                                <MudChip T="string" Color="Color.Primary" Size="Size.Small"
+                                         Variant="Variant.Filled" Style="font-weight: 700;">
+                                    Terugblik @recap.Number
+                                </MudChip>
+                                <MudText Typo="Typo.h6" Style="font-weight: 700;">@recap.Title</MudText>
+                            </div>
+                            <div class="d-flex align-center flex-wrap mb-3" style="gap: 12px;">
+                                <div class="d-flex align-center" style="gap: 4px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
+                                             Size="Size.Small" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @recap.Date.ToString("d MMMM yyyy")
+                                    </MudText>
+                                </div>
+                                <div class="d-flex align-center" style="gap: 4px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person"
+                                             Size="Size.Small" Color="Color.Secondary" />
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @recap.AuthorUsername
+                                    </MudText>
+                                </div>
+                            </div>
+                            <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.7;">
+                                @recap.Contents
+                            </MudText>
+                        </div>
+                        @if (CanEdit(recap))
+                        {
+                            <div class="d-flex flex-shrink-0" style="gap: 4px;">
+                                <MudTooltip Text="Bewerken">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                   Color="Color.Primary" OnClick="@(() => OpenEditDialog(recap))" />
+                                </MudTooltip>
+                                <MudTooltip Text="Verwijderen">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => OpenDeleteDialog(recap))" />
+                                </MudTooltip>
+                            </div>
+                        }
+                    </div>
+                </MudPaper>
+            }
+        </div>
+    }
+}
+
+@* ─── Create / Edit Dialog ─── *@
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(_editingId.HasValue ? $"Terugblik {_editingNumber} bewerken" : "Nieuwe terugblik")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Title" Label="Titel" Variant="Variant.Outlined"
+                              Required="true" MaxLength="200" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudDatePicker @bind-Date="_formDate" Label="Datum" Variant="Variant.Outlined"
+                               DateFormat="dd-MM-yyyy" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Contents" Label="Inhoud" Variant="Variant.Outlined"
+                              Lines="10" Required="true" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Variant="Variant.Text" Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="SaveRecap" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Opslaan
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@* ─── Delete Confirm Dialog ─── *@
+<MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Terugblik verwijderen</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            Weet u zeker dat u <strong>Terugblik @_deletingRecap?.Number — @_deletingRecap?.Title</strong> wilt verwijderen?
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _deleteDialogOpen = false)" Variant="Variant.Text"
+                   Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="ConfirmDelete" Variant="Variant.Filled" Color="Color.Error"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Verwijderen
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid CampaignId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    private List<RecapDto> _recaps = [];
+    private string? _campaignTitle;
+    private bool _loading = true;
+
+    private Guid _currentUserId;
+    private bool _isAdmin;
+
+    // Create/Edit dialog
+    private bool _dialogOpen;
+    private Guid? _editingId;
+    private int _editingNumber;
+    private RecapFormModel _form = new();
+    private DateTime? _formDate;
+    private bool _saving;
+
+    // Delete dialog
+    private bool _deleteDialogOpen;
+    private RecapDto? _deletingRecap;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    private readonly DialogOptions _deleteDialogOptions = new()
+    {
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateTask;
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        Guid.TryParse(userIdClaim, out _currentUserId);
+        _isAdmin = authState.User.IsInRole("Admin");
+
+        var campaign = await ApiClient.GetCampaignAsync(CampaignId);
+        _campaignTitle = campaign?.Title;
+
+        await LoadRecapsAsync();
+        _loading = false;
+    }
+
+    private async Task LoadRecapsAsync()
+    {
+        _recaps = await ApiClient.GetRecapsAsync(CampaignId);
+    }
+
+    private bool CanEdit(RecapDto recap) =>
+        recap.UserId == _currentUserId || _isAdmin;
+
+    private void OpenCreateDialog()
+    {
+        _editingId = null;
+        _editingNumber = 0;
+        _form = new RecapFormModel();
+        _formDate = DateTime.Today;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(RecapDto recap)
+    {
+        _editingId = recap.Id;
+        _editingNumber = recap.Number;
+        _form = new RecapFormModel
+        {
+            Title = recap.Title,
+            Contents = recap.Contents
+        };
+        _formDate = recap.Date.ToLocalTime();
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveRecap()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Title))
+        {
+            Snackbar.Add("Titel is verplicht.", Severity.Warning);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_form.Contents))
+        {
+            Snackbar.Add("Inhoud is verplicht.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var request = new RecapRequest(
+                (_formDate ?? DateTime.Today).ToUniversalTime(),
+                _form.Title.Trim(),
+                _form.Contents.Trim());
+
+            if (_editingId.HasValue)
+            {
+                var ok = await ApiClient.UpdateRecapAsync(_editingId.Value, request);
+                Snackbar.Add(ok ? "Terugblik bijgewerkt." : "Bijwerken mislukt.",
+                    ok ? Severity.Success : Severity.Error);
+            }
+            else
+            {
+                var created = await ApiClient.CreateRecapAsync(CampaignId, request);
+                Snackbar.Add(created is not null ? "Terugblik aangemaakt." : "Aanmaken mislukt.",
+                    created is not null ? Severity.Success : Severity.Error);
+            }
+
+            _dialogOpen = false;
+            await LoadRecapsAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void OpenDeleteDialog(RecapDto recap)
+    {
+        _deletingRecap = recap;
+        _deleteDialogOpen = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_deletingRecap is null) return;
+        _saving = true;
+        try
+        {
+            var ok = await ApiClient.DeleteRecapAsync(_deletingRecap.Id);
+            _deleteDialogOpen = false;
+            Snackbar.Add(ok ? "Terugblik verwijderd." : "Verwijderen mislukt.",
+                ok ? Severity.Success : Severity.Error);
+            if (ok) await LoadRecapsAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private class RecapFormModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Contents { get; set; } = string.Empty;
+    }
+}

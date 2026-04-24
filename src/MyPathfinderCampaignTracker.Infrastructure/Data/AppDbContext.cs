@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<Character> Characters => Set<Character>();
+    public DbSet<Recap> Recaps => Set<Recap>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +49,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .WithMany()
                   .HasForeignKey(c => c.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Recap>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.Title).IsRequired().HasMaxLength(200);
+            entity.Property(r => r.Contents).IsRequired();
+
+            entity.HasOne(r => r.Campaign)
+                  .WithMany()
+                  .HasForeignKey(r => r.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.User)
+                  .WithMany()
+                  .HasForeignKey(r => r.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(r => new { r.CampaignId, r.Number }).IsUnique();
         });
     }
 }

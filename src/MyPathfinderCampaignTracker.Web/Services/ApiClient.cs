@@ -133,4 +133,32 @@ public class ApiClient(
         var response = await client.DeleteAsync($"/api/characters/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<RecapDto>> GetRecapsAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<RecapDto>>($"/api/recaps/?campaignId={campaignId}") ?? [];
+    }
+
+    public async Task<RecapDto?> CreateRecapAsync(Guid campaignId, RecapRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/recaps/?campaignId={campaignId}", request);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<RecapDto>();
+    }
+
+    public async Task<bool> UpdateRecapAsync(Guid id, RecapRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/recaps/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteRecapAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/recaps/{id}");
+        return response.IsSuccessStatusCode;
+    }
 }

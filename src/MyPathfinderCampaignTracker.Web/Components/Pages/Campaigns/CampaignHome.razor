@@ -88,7 +88,7 @@ else
         </MudPaper>
     }
 
-    <MudPaper Elevation="0" Class="pa-6" Style="border: 1px dashed var(--mud-palette-lines-default); background: transparent;">
+    <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border: 1px solid var(--mud-palette-lines-default);">
         <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
             <div class="d-flex align-center" style="gap: 12px;">
                 <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" Size="Size.Large" />
@@ -104,6 +104,26 @@ else
                        EndIcon="@Icons.Material.Filled.ArrowForward"
                        Style="text-transform: none; font-weight: 600;">
                 Personages bekijken
+            </MudButton>
+        </div>
+    </MudPaper>
+
+    <MudPaper Elevation="0" Class="pa-6" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
+            <div class="d-flex align-center" style="gap: 12px;">
+                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" />
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Terugblikken</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Lees en schrijf sessieverslagen voor deze campagne.
+                    </MudText>
+                </div>
+            </div>
+            <MudButton Href="@($"/campaigns/{Id}/recaps")"
+                       Variant="Variant.Filled" Color="Color.Secondary"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       Style="text-transform: none; font-weight: 600;">
+                Terugblikken bekijken
             </MudButton>
         </div>
     </MudPaper>

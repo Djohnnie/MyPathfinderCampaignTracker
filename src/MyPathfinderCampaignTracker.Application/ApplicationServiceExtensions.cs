@@ -11,6 +11,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<ICharacterService, CharacterService>();
+        services.AddScoped<IRecapService, RecapService>();
         return services;
     }
 }
