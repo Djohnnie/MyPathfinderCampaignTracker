@@ -103,6 +103,7 @@ app.MapProfileEndpoints();
 app.MapCampaignEndpoints();
 app.MapCharacterEndpoints();
 app.MapRecapEndpoints();
+app.MapChatEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

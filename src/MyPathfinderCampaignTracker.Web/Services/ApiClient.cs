@@ -179,4 +179,18 @@ public class ApiClient(
         var response = await client.DeleteAsync($"/api/recaps/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<ChatMessageDto>> GetChatMessagesAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<ChatMessageDto>>($"/api/campaigns/{campaignId}/chat/") ?? [];
+    }
+
+    public async Task<ChatMessageDto?> SendChatMessageAsync(Guid campaignId, string content)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/chat/", new ChatMessageRequest(content));
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<ChatMessageDto>();
+    }
 }

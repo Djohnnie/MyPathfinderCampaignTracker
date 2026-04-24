@@ -1,0 +1,201 @@
+@page "/campaigns/{CampaignId:guid}/chat"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using System.Security.Claims
+@using System.Timers
+@implements IDisposable
+
+<PageTitle>Chat — Pathfinder Campaign Tracker</PageTitle>
+
+@* ─── Header ─── *@
+<div class="d-flex align-center mb-3" style="gap: 12px;">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                   OnClick="@(() => Navigation.NavigateTo($"/campaigns/{CampaignId}"))" />
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Chat</MudText>
+        @if (_campaignTitle is not null)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@_campaignTitle</MudText>
+        }
+    </div>
+</div>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else
+{
+    @* ─── Messages — render directly on page, page scrolls ─── *@
+    @if (_messages.Count == 0)
+    {
+        <div class="d-flex flex-column align-center justify-center my-8">
+            <MudIcon Icon="@Icons.Material.Filled.Forum" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+            <MudText Typo="Typo.body1" Color="Color.Secondary">No messages yet. Start the conversation!</MudText>
+        </div>
+    }
+    else
+    {
+        <div class="mb-4">
+            @foreach (var msg in _messages)
+            {
+                var isOwn = msg.UserId == _currentUserId;
+                var initials = GetInitials(msg.Username);
+
+                <MudXChat Class="mb-2"
+                          ChatPosition="@(isOwn ? ChatBubblePosition.End : ChatBubblePosition.Start)"
+                          Color="@(isOwn ? Color.Primary : Color.Default)"
+                          Variant="Variant.Filled"
+                          Elevation="0">
+                    @if (!isOwn)
+                    {
+                        <MudAvatar Color="Color.Secondary" Size="Size.Small">@initials</MudAvatar>
+                    }
+                    <MudXChatHeader Name="@(isOwn ? "You" : msg.Username)"
+                                    Time="@FormatTime(msg.SentAt)" />
+                    <MudXChatBubble>@msg.Content</MudXChatBubble>
+                </MudXChat>
+            }
+        </div>
+    }
+
+    @* ─── Input bar — sticky at viewport bottom ─── *@
+    <div style="position: sticky; bottom: 0; z-index: 10;
+                background: var(--mud-palette-background);
+                padding: 8px 0 12px;
+                border-top: 1px solid var(--mud-palette-divider);">
+        <div class="d-flex align-center" style="gap: 8px;">
+            <MudTextField @bind-Value="_newMessage"
+                          @onkeydown="HandleKeyDown"
+                          Placeholder="Type a message and press Enter to send..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="flex-1"
+                          Style="margin-bottom: 0;"
+                          Immediate="true"
+                          Disabled="_sending" />
+            <MudIconButton Icon="@Icons.Material.Filled.Send"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           Size="Size.Medium"
+                           OnClick="SendMessage"
+                           Disabled="@(_sending || string.IsNullOrWhiteSpace(_newMessage))" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid CampaignId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    private List<ChatMessageDto> _messages = [];
+    private string? _campaignTitle;
+    private bool _loading = true;
+    private bool _sending;
+    private string _newMessage = string.Empty;
+    private Guid _currentUserId;
+    private Timer? _pollTimer;
+    private bool _shouldScroll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateTask;
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        Guid.TryParse(userIdClaim, out _currentUserId);
+
+        var campaign = await ApiClient.GetCampaignAsync(CampaignId);
+        _campaignTitle = campaign?.Title;
+
+        await LoadMessagesAsync();
+        _loading = false;
+        _shouldScroll = true;
+
+        _pollTimer = new Timer(5000);
+        _pollTimer.Elapsed += async (_, _) =>
+        {
+            await LoadMessagesAsync();
+            await InvokeAsync(StateHasChanged);
+        };
+        _pollTimer.AutoReset = true;
+        _pollTimer.Start();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldScroll && !_loading)
+        {
+            _shouldScroll = false;
+            await ScrollToBottomAsync();
+        }
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        _messages = await ApiClient.GetChatMessagesAsync(CampaignId);
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_newMessage) || _sending) return;
+
+        _sending = true;
+        var content = _newMessage.Trim();
+        _newMessage = string.Empty;
+
+        try
+        {
+            var sent = await ApiClient.SendChatMessageAsync(CampaignId, content);
+            if (sent is not null)
+            {
+                await LoadMessagesAsync();
+                _shouldScroll = true;
+            }
+        }
+        finally
+        {
+            _sending = false;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await SendMessage();
+    }
+
+    private async Task ScrollToBottomAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("chatScrollToBottom");
+        }
+        catch { /* ignore during prerender */ }
+    }
+
+    private static string GetInitials(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return "?";
+        var parts = username.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}"
+            : username[..Math.Min(2, username.Length)].ToUpper();
+    }
+
+    private static string FormatTime(DateTime sentAt)
+    {
+        var local = sentAt.ToLocalTime();
+        var now = DateTime.Now;
+        if (local.Date == now.Date) return local.ToString("HH:mm");
+        if (local.Date == now.Date.AddDays(-1)) return $"yesterday {local:HH:mm}";
+        return local.ToString("d MMM HH:mm");
+    }
+
+    public void Dispose()
+    {
+        _pollTimer?.Stop();
+        _pollTimer?.Dispose();
+    }
+}

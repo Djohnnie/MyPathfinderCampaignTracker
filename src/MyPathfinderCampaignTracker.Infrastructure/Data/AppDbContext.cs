@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<Recap> Recaps => Set<Recap>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +69,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(r => new { r.CampaignId, r.Number }).IsUnique();
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Content).IsRequired();
+
+            entity.HasOne(m => m.Campaign)
+                  .WithMany()
+                  .HasForeignKey(m => m.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(m => m.User)
+                  .WithMany()
+                  .HasForeignKey(m => m.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(m => new { m.CampaignId, m.SentAt });
         });
     }
 }
