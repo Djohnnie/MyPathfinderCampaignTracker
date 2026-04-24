@@ -10,6 +10,15 @@ public static class CharacterEndpoints
     {
         var group = routes.MapGroup("/api/characters");
 
+        group.MapGet("/my", async (ClaimsPrincipal user, ICharacterService characterService) =>
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+            var characters = await characterService.GetByUserAsync(userId);
+            return Results.Ok(characters);
+        }).RequireAuthorization("ApiAuth");
+
         group.MapGet("/", async (Guid campaignId, ICharacterService characterService) =>
         {
             var characters = await characterService.GetByCampaignAsync(campaignId);

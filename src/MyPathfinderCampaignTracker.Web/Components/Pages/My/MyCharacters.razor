@@ -1,0 +1,148 @@
+@page "/my/characters"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Mijn Personages — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Mijn Personages</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Uw personages gegroepeerd per campagne — levenden eerst, gevallenen als laatste.
+    </MudText>
+
+    @if (_groups.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
+                  Style="border: 1px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">U heeft nog geen personages</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Ga naar een campagne om uw eerste personage aan te maken.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        @foreach (var group in _groups)
+        {
+            <div class="mb-6">
+                <div class="d-flex align-center justify-space-between mb-3">
+                    <div class="d-flex align-center" style="gap: 8px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Map" Color="Color.Primary" Size="Size.Small" />
+                        <MudText Typo="Typo.h6" Class="pf-section-title" Style="font-weight: 700;">
+                            @group.CampaignName
+                        </MudText>
+                    </div>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                               EndIcon="@Icons.Material.Filled.ArrowForward"
+                               OnClick="@(() => Navigation.NavigateTo($"/campaigns/{group.CampaignId}/characters"))">
+                        Bekijk alle
+                    </MudButton>
+                </div>
+
+                <MudGrid Spacing="3">
+                    @foreach (var character in group.Characters)
+                    {
+                        <MudItem xs="12" md="6" xl="4">
+                            <MudPaper Elevation="0" Class="@GetCharacterCardClass(character)"
+                                      Style="@(character.KilledInAction ? "border: 1px solid var(--mud-palette-lines-default); opacity: 0.75;" : "")">
+                                <div class="d-flex align-center justify-space-between mb-2">
+                                    <div>
+                                        <div class="d-flex align-center" style="gap: 8px;">
+                                            <MudText Typo="Typo.h6" Style="font-weight: 700;">@character.Name</MudText>
+                                            @if (character.KilledInAction)
+                                            {
+                                                <MudChip T="string" Color="Color.Error" Size="Size.Small"
+                                                         Icon="@Icons.Material.Filled.Dangerous">KIA</MudChip>
+                                            }
+                                        </div>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                            @character.Race · @character.CharacterClass · Niveau @character.Level
+                                        </MudText>
+                                    </div>
+                                    <MudIcon Icon="@(character.KilledInAction ? Icons.Material.Filled.HeartBroken : Icons.Material.Filled.Shield)"
+                                             Color="@(character.KilledInAction ? Color.Error : Color.Primary)"
+                                             Size="Size.Medium" />
+                                </div>
+
+                                <div class="d-flex justify-space-between" style="gap: 4px;">
+                                    @foreach (var (label, score) in AbilityScores(character))
+                                    {
+                                        <div class="d-flex flex-column align-center pa-1"
+                                             style="border: 1px solid var(--mud-palette-lines-default); border-radius: 6px; flex: 1;">
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 600;">@label</MudText>
+                                            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; line-height: 1.2;">@score</MudText>
+                                            <MudText Typo="Typo.caption" Color="@(Modifier(score) >= 0 ? Color.Success : Color.Error)">
+                                                @(Modifier(score) >= 0 ? $"+{Modifier(score)}" : Modifier(score).ToString())
+                                            </MudText>
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(character.Backstory))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2" Style="font-style: italic;">
+                                        @(character.Backstory.Length > 80 ? character.Backstory[..80] + "…" : character.Backstory)
+                                    </MudText>
+                                }
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </div>
+        }
+    }
+}
+
+@code {
+    private List<CharacterGroup> _groups = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var characters = await ApiClient.GetMyCharactersAsync();
+
+        _groups = characters
+            .GroupBy(c => new { c.CampaignId, c.CampaignName })
+            .OrderBy(g => g.Key.CampaignName)
+            .Select(g => new CharacterGroup
+            {
+                CampaignId = g.Key.CampaignId,
+                CampaignName = g.Key.CampaignName,
+                Characters = g
+                    .OrderBy(c => c.KilledInAction)
+                    .ThenBy(c => c.Name)
+                    .ToList()
+            })
+            .ToList();
+
+        _loading = false;
+    }
+
+    private static int Modifier(int score) => (int)Math.Floor((score - 10) / 2.0);
+
+    private static string GetCharacterCardClass(CharacterDto character) =>
+        character.KilledInAction ? "pa-4 card-hover" : "pa-4 card-hover fantasy-card";
+
+    private static IEnumerable<(string Label, int Score)> AbilityScores(CharacterDto c) =>
+    [
+        ("STR", c.Strength),
+        ("DEX", c.Dexterity),
+        ("CON", c.Constitution),
+        ("INT", c.Intelligence),
+        ("WIS", c.Wisdom),
+        ("CHA", c.Charisma)
+    ];
+
+    private record CharacterGroup
+    {
+        public Guid CampaignId { get; init; }
+        public string CampaignName { get; init; } = string.Empty;
+        public List<CharacterDto> Characters { get; init; } = [];
+    }
+}

@@ -14,6 +14,15 @@ public class RecapRepository(AppDbContext context) : IRecapRepository
             .OrderBy(r => r.Number)
             .ToListAsync();
 
+    public async Task<IReadOnlyList<Recap>> GetByUserAsync(Guid userId)
+        => await context.Recaps
+            .Include(r => r.User)
+            .Include(r => r.Campaign)
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.Date)
+            .ThenByDescending(r => r.Number)
+            .ToListAsync();
+
     public async Task<Recap?> GetByIdAsync(Guid id)
         => await context.Recaps
             .Include(r => r.User)

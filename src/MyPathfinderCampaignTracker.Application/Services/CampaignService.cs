@@ -12,6 +12,12 @@ public class CampaignService(ICampaignRepository campaignRepository) : ICampaign
         return campaigns.Select(MapToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<CampaignDto>> GetByPlayerAsync(Guid userId)
+    {
+        var campaigns = await campaignRepository.GetByPlayerAsync(userId);
+        return campaigns.Select(MapToDto).ToList();
+    }
+
     public async Task<CampaignDto?> GetByIdAsync(Guid id)
     {
         var campaign = await campaignRepository.GetByIdAsync(id);

@@ -4,6 +4,7 @@ public class RecapDto
 {
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
     public Guid UserId { get; set; }
     public string AuthorUsername { get; set; } = string.Empty;
     public int Number { get; set; }

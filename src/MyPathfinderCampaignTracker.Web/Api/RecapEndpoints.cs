@@ -10,6 +10,15 @@ public static class RecapEndpoints
     {
         var group = routes.MapGroup("/api/recaps");
 
+        group.MapGet("/my", async (ClaimsPrincipal user, IRecapService recapService) =>
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+            var recaps = await recapService.GetByUserAsync(userId);
+            return Results.Ok(recaps);
+        }).RequireAuthorization("ApiAuth");
+
         group.MapGet("/", async (Guid campaignId, IRecapService recapService) =>
         {
             var recaps = await recapService.GetByCampaignAsync(campaignId);

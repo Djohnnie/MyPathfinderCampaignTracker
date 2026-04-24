@@ -4,6 +4,7 @@ public class CharacterDto
 {
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
     public Guid UserId { get; set; }
     public string OwnerUsername { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

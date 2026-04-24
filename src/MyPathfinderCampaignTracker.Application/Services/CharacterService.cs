@@ -9,7 +9,13 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
     public async Task<IReadOnlyList<CharacterDto>> GetByCampaignAsync(Guid campaignId)
     {
         var characters = await characterRepository.GetByCampaignAsync(campaignId);
-        return characters.Select(MapToDto).ToList();
+        return characters.Select(c => MapToDto(c)).ToList();
+    }
+
+    public async Task<IReadOnlyList<CharacterDto>> GetByUserAsync(Guid userId)
+    {
+        var characters = await characterRepository.GetByUserAsync(userId);
+        return characters.Select(c => MapToDto(c, includeCampaignName: true)).ToList();
     }
 
     public async Task<CharacterDto?> GetByIdAsync(Guid id)
@@ -78,10 +84,11 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
         return true;
     }
 
-    private static CharacterDto MapToDto(Character c) => new()
+    private static CharacterDto MapToDto(Character c, bool includeCampaignName = false) => new()
     {
         Id = c.Id,
         CampaignId = c.CampaignId,
+        CampaignName = includeCampaignName ? (c.Campaign?.Title ?? string.Empty) : string.Empty,
         UserId = c.UserId,
         OwnerUsername = c.User?.Username ?? string.Empty,
         Name = c.Name,

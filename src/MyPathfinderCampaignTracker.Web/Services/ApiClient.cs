@@ -52,6 +52,12 @@ public class ApiClient(
         await client.PutAsJsonAsync("/api/profile/darkmode", new { isDarkMode });
     }
 
+    public async Task<List<CampaignDto>> GetMyCampaignsAsync()
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<CampaignDto>>("/api/campaigns/my") ?? [];
+    }
+
     public async Task<List<CampaignDto>> GetCampaignsAsync()
     {
         var client = await CreateClientAsync();
@@ -100,6 +106,12 @@ public class ApiClient(
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<List<CharacterDto>> GetMyCharactersAsync()
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<CharacterDto>>("/api/characters/my") ?? [];
+    }
+
     public async Task<List<CharacterDto>> GetCharactersAsync(Guid campaignId)
     {
         var client = await CreateClientAsync();
@@ -132,6 +144,12 @@ public class ApiClient(
         var client = await CreateClientAsync();
         var response = await client.DeleteAsync($"/api/characters/{id}");
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<RecapDto>> GetMyRecapsAsync()
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<RecapDto>>("/api/recaps/my") ?? [];
     }
 
     public async Task<List<RecapDto>> GetRecapsAsync(Guid campaignId)

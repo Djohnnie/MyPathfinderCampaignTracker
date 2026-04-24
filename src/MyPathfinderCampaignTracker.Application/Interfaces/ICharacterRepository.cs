@@ -5,6 +5,7 @@ namespace MyPathfinderCampaignTracker.Application.Interfaces;
 public interface ICharacterRepository
 {
     Task<IReadOnlyList<Character>> GetByCampaignAsync(Guid campaignId);
+    Task<IReadOnlyList<Character>> GetByUserAsync(Guid userId);
     Task<Character?> GetByIdAsync(Guid id);
     Task AddAsync(Character character);
     Task UpdateAsync(Character character);

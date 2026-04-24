@@ -5,6 +5,17 @@
                 Dashboard
             </MudNavLink>
 
+            <div class="fantasy-divider mx-3 mt-3">Mijn Overzicht</div>
+            <MudNavLink Href="/my/campaigns" Icon="@Icons.Material.Filled.Map">
+                Mijn campagnes
+            </MudNavLink>
+            <MudNavLink Href="/my/characters" Icon="@Icons.Material.Filled.Shield">
+                Mijn personages
+            </MudNavLink>
+            <MudNavLink Href="/my/recaps" Icon="@Icons.Material.Filled.MenuBook">
+                Mijn terugblikken
+            </MudNavLink>
+
             <AuthorizeView Roles="Admin" Context="adminCtx">
                 <Authorized>
                     <div class="fantasy-divider mx-3 mt-3">Beheer</div>

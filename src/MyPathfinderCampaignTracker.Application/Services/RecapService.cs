@@ -9,7 +9,13 @@ public class RecapService(IRecapRepository recapRepository) : IRecapService
     public async Task<IReadOnlyList<RecapDto>> GetByCampaignAsync(Guid campaignId)
     {
         var recaps = await recapRepository.GetByCampaignAsync(campaignId);
-        return recaps.Select(MapToDto).ToList();
+        return recaps.Select(r => MapToDto(r)).ToList();
+    }
+
+    public async Task<IReadOnlyList<RecapDto>> GetByUserAsync(Guid userId)
+    {
+        var recaps = await recapRepository.GetByUserAsync(userId);
+        return recaps.Select(r => MapToDto(r, includeCampaignName: true)).ToList();
     }
 
     public async Task<RecapDto?> GetByIdAsync(Guid id)
@@ -63,10 +69,11 @@ public class RecapService(IRecapRepository recapRepository) : IRecapService
         return true;
     }
 
-    private static RecapDto MapToDto(Recap r) => new()
+    private static RecapDto MapToDto(Recap r, bool includeCampaignName = false) => new()
     {
         Id = r.Id,
         CampaignId = r.CampaignId,
+        CampaignName = includeCampaignName ? (r.Campaign?.Title ?? string.Empty) : string.Empty,
         UserId = r.UserId,
         AuthorUsername = r.User?.Username ?? string.Empty,
         Number = r.Number,

@@ -10,6 +10,15 @@ public static class CampaignEndpoints
     {
         var group = routes.MapGroup("/api/campaigns");
 
+        group.MapGet("/my", async (ClaimsPrincipal user, ICampaignService campaignService) =>
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+            var campaigns = await campaignService.GetByPlayerAsync(userId);
+            return Results.Ok(campaigns);
+        }).RequireAuthorization("ApiAuth");
+
         group.MapGet("/", async (ICampaignService campaignService) =>
         {
             var campaigns = await campaignService.GetAllAsync();

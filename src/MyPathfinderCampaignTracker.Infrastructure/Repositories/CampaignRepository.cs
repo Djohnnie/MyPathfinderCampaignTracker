@@ -13,6 +13,13 @@ public class CampaignRepository(AppDbContext context) : ICampaignRepository
             .OrderByDescending(c => c.UpdatedAt)
             .ToListAsync();
 
+    public async Task<IReadOnlyList<Campaign>> GetByPlayerAsync(Guid userId)
+        => await context.Campaigns
+            .Include(c => c.Players)
+            .Where(c => c.Players.Any(p => p.Id == userId))
+            .OrderByDescending(c => c.UpdatedAt)
+            .ToListAsync();
+
     public async Task<Campaign?> GetByIdAsync(Guid id)
         => await context.Campaigns
             .Include(c => c.Players)

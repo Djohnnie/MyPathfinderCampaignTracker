@@ -14,6 +14,16 @@ public class CharacterRepository(AppDbContext context) : ICharacterRepository
             .OrderBy(c => c.Name)
             .ToListAsync();
 
+    public async Task<IReadOnlyList<Character>> GetByUserAsync(Guid userId)
+        => await context.Characters
+            .Include(c => c.User)
+            .Include(c => c.Campaign)
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.Campaign.Title)
+            .ThenBy(c => c.KilledInAction)
+            .ThenBy(c => c.Name)
+            .ToListAsync();
+
     public async Task<Character?> GetByIdAsync(Guid id)
         => await context.Characters
             .Include(c => c.User)

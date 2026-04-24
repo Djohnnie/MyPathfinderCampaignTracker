@@ -5,6 +5,7 @@ namespace MyPathfinderCampaignTracker.Application.Interfaces;
 public interface IRecapService
 {
     Task<IReadOnlyList<RecapDto>> GetByCampaignAsync(Guid campaignId);
+    Task<IReadOnlyList<RecapDto>> GetByUserAsync(Guid userId);
     Task<RecapDto?> GetByIdAsync(Guid id);
     Task<RecapDto> CreateAsync(Guid campaignId, Guid userId, RecapRequest request);
     Task<bool> UpdateAsync(Guid id, RecapRequest request);
