@@ -1,0 +1,357 @@
+@page "/admin/campaigns"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<PageTitle>Campagnebeheer — Pathfinder Campaign Tracker</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Campagnebeheer</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Campagnes aanmaken, bewerken en verwijderen</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+        Nieuwe campagne
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_campaigns.Count == 0)
+{
+    <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
+              Style="border: 1px dashed var(--mud-palette-lines-default);">
+        <MudIcon Icon="@Icons.Material.Filled.Map" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+        <MudText Typo="Typo.h6" Color="Color.Secondary">Nog geen campagnes</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Klik op "Nieuwe campagne" om te beginnen.</MudText>
+    </MudPaper>
+}
+else
+{
+    <MudTable Items="_campaigns" Hover="true" Elevation="0"
+              Style="border: 1px solid var(--mud-palette-lines-default);" Striped="true">
+        <HeaderContent>
+            <MudTh>Titel</MudTh>
+            <MudTh>Startdatum</MudTh>
+            <MudTh>Einddatum</MudTh>
+            <MudTh>Spelers</MudTh>
+            <MudTh>Bijgewerkt</MudTh>
+            <MudTh Style="text-align:right;">Acties</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudLink Href="@($"/campaigns/{context.Id}")" Typo="Typo.body1" Style="font-weight: 600;">
+                    @context.Title
+                </MudLink>
+                @if (!string.IsNullOrWhiteSpace(context.Description))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @(context.Description.Length > 60 ? context.Description[..60] + "…" : context.Description)
+                    </MudText>
+                }
+            </MudTd>
+            <MudTd>@context.StartDate.ToString("dd-MM-yyyy")</MudTd>
+            <MudTd>@(context.EndDate?.ToString("dd-MM-yyyy") ?? "—")</MudTd>
+            <MudTd>
+                <div class="d-flex flex-wrap" style="gap: 4px;">
+                    @foreach (var p in context.Players)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                            @p.Username
+                        </MudChip>
+                    }
+                </div>
+            </MudTd>
+            <MudTd>@context.UpdatedAt.ToString("dd-MM-yyyy HH:mm")</MudTd>
+            <MudTd Style="text-align:right;">
+                <MudTooltip Text="Bewerken">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                   Color="Color.Primary" OnClick="@(() => OpenEditDialog(context))" />
+                </MudTooltip>
+                <MudTooltip Text="Verwijderen">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                   Color="Color.Error" OnClick="@(() => OpenDeleteDialog(context))" />
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@* ─── Create / Edit Dialog ─── *@
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingId.HasValue ? "Campagne bewerken" : "Nieuwe campagne")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Title" Label="Titel" Variant="Variant.Outlined"
+                              Required="true" MaxLength="200" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Description" Label="Beschrijving" Variant="Variant.Outlined"
+                              Lines="2" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Link" Label="Link (URL)" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Link" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_startDate" Label="Startdatum" Variant="Variant.Outlined"
+                               DateFormat="dd-MM-yyyy" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_endDate" Label="Einddatum (optioneel)" Variant="Variant.Outlined"
+                               DateFormat="dd-MM-yyyy" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.ExtensiveInformation" Label="Uitgebreide informatie"
+                              Variant="Variant.Outlined" Lines="6" />
+            </MudItem>
+
+            @* Player management section *@
+            <MudItem xs="12">
+                <MudDivider Class="my-1" />
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">Spelers</MudText>
+                <div class="d-flex flex-wrap mb-2" style="gap: 6px; min-height: 32px;">
+                    @foreach (var player in _selectedPlayers)
+                    {
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small"
+                                 OnClose="@(() => RemoveSelectedPlayer(player))" CloseIcon="@Icons.Material.Filled.Close">
+                            @player.Username
+                        </MudChip>
+                    }
+                    @if (_selectedPlayers.Count == 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Geen spelers geselecteerd</MudText>
+                    }
+                </div>
+                <MudSelect T="UserDto" Label="Speler toevoegen" Variant="Variant.Outlined" Dense="true"
+                           Value="_playerToAdd" ValueChanged="AddSelectedPlayer"
+                           ToStringFunc="@(u => u?.Username ?? string.Empty)">
+                    @foreach (var user in _availableUsers)
+                    {
+                        <MudSelectItem T="UserDto" Value="user">@user.Username</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Variant="Variant.Text" Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="SaveCampaign" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Opslaan
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@* ─── Delete Confirm Dialog ─── *@
+<MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Campagne verwijderen</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Weet u zeker dat u <strong>@_deletingCampaign?.Title</strong> wilt verwijderen? Dit kan niet ongedaan worden gemaakt.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _deleteDialogOpen = false)" Variant="Variant.Text"
+                   Style="text-transform: none;">Annuleren</MudButton>
+        <MudButton OnClick="ConfirmDelete" Variant="Variant.Filled" Color="Color.Error"
+                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
+            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            Verwijderen
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<CampaignDto> _campaigns = [];
+    private List<UserDto> _allUsers = [];
+    private bool _loading = true;
+
+    // Create/Edit dialog
+    private bool _dialogOpen;
+    private Guid? _editingId;
+    private CampaignFormModel _form = new();
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private List<UserDto> _selectedPlayers = [];
+    private List<UserDto> _availableUsers = [];
+    private UserDto? _playerToAdd;
+    private bool _saving;
+
+    // Delete dialog
+    private bool _deleteDialogOpen;
+    private CampaignDto? _deletingCampaign;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    private readonly DialogOptions _deleteDialogOptions = new()
+    {
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var (campaigns, users) = (await ApiClient.GetCampaignsAsync(), await ApiClient.GetUsersAsync());
+        _campaigns = campaigns;
+        _allUsers = users.Where(u => u.IsApproved).ToList();
+        _loading = false;
+    }
+
+    private void OpenCreateDialog()
+    {
+        _editingId = null;
+        _form = new();
+        _startDate = DateTime.Today;
+        _endDate = null;
+        _selectedPlayers = [];
+        RefreshAvailableUsers();
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(CampaignDto campaign)
+    {
+        _editingId = campaign.Id;
+        _form = new CampaignFormModel
+        {
+            Title = campaign.Title,
+            Description = campaign.Description,
+            Link = campaign.Link ?? string.Empty,
+            ExtensiveInformation = campaign.ExtensiveInformation
+        };
+        _startDate = campaign.StartDate;
+        _endDate = campaign.EndDate;
+        _selectedPlayers = [.. campaign.Players];
+        RefreshAvailableUsers();
+        _dialogOpen = true;
+    }
+
+    private void RefreshAvailableUsers()
+    {
+        var selectedIds = _selectedPlayers.Select(p => p.Id).ToHashSet();
+        _availableUsers = _allUsers.Where(u => !selectedIds.Contains(u.Id)).ToList();
+        _playerToAdd = null;
+    }
+
+    private void AddSelectedPlayer(UserDto? user)
+    {
+        if (user is null) return;
+        _selectedPlayers.Add(user);
+        RefreshAvailableUsers();
+    }
+
+    private void RemoveSelectedPlayer(UserDto player)
+    {
+        _selectedPlayers.Remove(player);
+        RefreshAvailableUsers();
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveCampaign()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Title))
+        {
+            Snackbar.Add("Titel is verplicht.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var request = new CampaignRequest(
+                _form.Title.Trim(),
+                _form.Description.Trim(),
+                string.IsNullOrWhiteSpace(_form.Link) ? null : _form.Link.Trim(),
+                _form.ExtensiveInformation.Trim(),
+                (_startDate ?? DateTime.Today).ToUniversalTime(),
+                _endDate?.ToUniversalTime());
+
+            if (_editingId.HasValue)
+            {
+                var ok = await ApiClient.UpdateCampaignAsync(_editingId.Value, request);
+                if (!ok) { Snackbar.Add("Bijwerken mislukt.", Severity.Error); return; }
+
+                // Sync players: add new, remove removed
+                var existing = _campaigns.First(c => c.Id == _editingId.Value).Players;
+                var toAdd = _selectedPlayers.Where(p => existing.All(e => e.Id != p.Id)).ToList();
+                var toRemove = existing.Where(e => _selectedPlayers.All(p => p.Id != e.Id)).ToList();
+
+                foreach (var p in toAdd)
+                    await ApiClient.AddCampaignPlayerAsync(_editingId.Value, p.Id);
+                foreach (var p in toRemove)
+                    await ApiClient.RemoveCampaignPlayerAsync(_editingId.Value, p.Id);
+
+                Snackbar.Add("Campagne bijgewerkt.", Severity.Success);
+            }
+            else
+            {
+                var created = await ApiClient.CreateCampaignAsync(request);
+                if (created is null) { Snackbar.Add("Aanmaken mislukt.", Severity.Error); return; }
+
+                foreach (var p in _selectedPlayers)
+                    await ApiClient.AddCampaignPlayerAsync(created.Id, p.Id);
+
+                Snackbar.Add("Campagne aangemaakt.", Severity.Success);
+            }
+
+            _dialogOpen = false;
+            await LoadDataAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void OpenDeleteDialog(CampaignDto campaign)
+    {
+        _deletingCampaign = campaign;
+        _deleteDialogOpen = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_deletingCampaign is null) return;
+        _saving = true;
+        try
+        {
+            var ok = await ApiClient.DeleteCampaignAsync(_deletingCampaign.Id);
+            _deleteDialogOpen = false;
+            Snackbar.Add(ok ? "Campagne verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
+            if (ok) await LoadDataAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private class CampaignFormModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public string ExtensiveInformation { get; set; } = string.Empty;
+    }
+}

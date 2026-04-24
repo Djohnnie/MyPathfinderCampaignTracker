@@ -1,0 +1,115 @@
+@page "/campaigns/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>@(_campaign?.Title ?? "Campagne") — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_campaign is null)
+{
+    <MudAlert Severity="Severity.Error">Campagne niet gevonden.</MudAlert>
+}
+else
+{
+    <div class="d-flex align-center mb-2" style="gap: 12px;">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo("/dashboard"))" />
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">@_campaign.Title</MudText>
+        @if (_campaign.EndDate.HasValue && _campaign.EndDate < DateTime.UtcNow)
+        {
+            <MudChip T="string" Color="Color.Default" Size="Size.Small">Afgelopen</MudChip>
+        }
+        else
+        {
+            <MudChip T="string" Color="Color.Success" Size="Size.Small">Actief</MudChip>
+        }
+    </div>
+
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">@_campaign.Description</MudText>
+
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Startdatum</MudText>
+                <MudText Typo="Typo.body1" Style="font-weight: 600;">@_campaign.StartDate.ToString("d MMMM yyyy")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Einddatum</MudText>
+                <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                    @(_campaign.EndDate?.ToString("d MMMM yyyy") ?? "—")
+                </MudText>
+            </MudPaper>
+        </MudItem>
+        @if (!string.IsNullOrWhiteSpace(_campaign.Link))
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Meer informatie</MudText>
+                    <MudLink Href="@_campaign.Link" Target="_blank" Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="mr-1" />Bezoeken
+                    </MudLink>
+                </MudPaper>
+            </MudItem>
+        }
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Spelers</MudText>
+                <div class="d-flex flex-wrap mt-1" style="gap: 4px;">
+                    @if (_campaign.Players.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Geen spelers</MudText>
+                    }
+                    else
+                    {
+                        @foreach (var player in _campaign.Players)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                                @player.Username
+                            </MudChip>
+                        }
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @if (!string.IsNullOrWhiteSpace(_campaign.ExtensiveInformation))
+    {
+        <MudPaper Elevation="0" Class="pa-6 mb-6" Style="border: 1px solid var(--mud-palette-lines-default);">
+            <MudText Typo="Typo.h6" Style="font-weight: 600;" Class="mb-3">Uitgebreide informatie</MudText>
+            <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@_campaign.ExtensiveInformation</MudText>
+        </MudPaper>
+    }
+
+    <MudPaper Elevation="0" Class="pa-6" Style="border: 1px dashed var(--mud-palette-lines-default); background: transparent;">
+        <div class="d-flex align-center" style="gap: 12px;">
+            <MudIcon Icon="@Icons.Material.Filled.Construction" Color="Color.Warning" Size="Size.Large" />
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">Meer functies komen eraan</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Sessieverslagen, personages en andere campagnefuncties worden hier toegevoegd.
+                </MudText>
+            </div>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CampaignDto? _campaign;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _campaign = await ApiClient.GetCampaignAsync(Id);
+        _loading = false;
+    }
+}

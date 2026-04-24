@@ -51,4 +51,52 @@ public class ApiClient(
         var client = await CreateClientAsync();
         await client.PutAsJsonAsync("/api/profile/darkmode", new { isDarkMode });
     }
+
+    public async Task<List<CampaignDto>> GetCampaignsAsync()
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<CampaignDto>>("/api/campaigns/") ?? [];
+    }
+
+    public async Task<CampaignDto?> GetCampaignAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<CampaignDto>($"/api/campaigns/{id}");
+    }
+
+    public async Task<CampaignDto?> CreateCampaignAsync(CampaignRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync("/api/campaigns/", request);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<CampaignDto>();
+    }
+
+    public async Task<bool> UpdateCampaignAsync(Guid id, CampaignRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/campaigns/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteCampaignAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/campaigns/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AddCampaignPlayerAsync(Guid campaignId, Guid userId)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsync($"/api/campaigns/{campaignId}/players/{userId}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RemoveCampaignPlayerAsync(Guid campaignId, Guid userId)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/players/{userId}");
+        return response.IsSuccessStatusCode;
+    }
 }

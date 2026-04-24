@@ -68,7 +68,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddHttpClient("ApiClient", client =>
 {
-    var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7279";
+    var apiBaseUrl = builder.Configuration["API_BASE_URL"] ?? "https://localhost:7279";
     client.BaseAddress = new Uri(apiBaseUrl);
 });
 
@@ -100,6 +100,7 @@ app.MapStaticAssets();
 app.MapAuthEndpoints();
 app.MapUserManagementEndpoints();
 app.MapProfileEndpoints();
+app.MapCampaignEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
