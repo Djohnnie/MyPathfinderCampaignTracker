@@ -14,6 +14,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<GameSession> GameSessions => Set<GameSession>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<LoreacleMessage> LoreacleMessages => Set<LoreacleMessage>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -169,6 +170,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(m => new { m.CampaignId, m.UserId, m.SentAt });
+        });
+
+        modelBuilder.Entity<ActivityLog>(entity =>
+        {
+            entity.Property(a => a.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(a => a.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(a => a.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
+            entity.Property(a => a.SubjectName).HasMaxLength(300);
+
+            entity.HasOne(a => a.Campaign)
+                  .WithMany()
+                  .HasForeignKey(a => a.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.User)
+                  .WithMany()
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(a => new { a.CampaignId, a.OccurredAt });
         });
     }
 }

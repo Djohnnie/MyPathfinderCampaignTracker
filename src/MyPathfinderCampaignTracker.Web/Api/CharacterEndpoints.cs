@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
+using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Web.Api;
 
@@ -35,7 +36,8 @@ public static class CharacterEndpoints
             Guid campaignId,
             CharacterRequest request,
             ClaimsPrincipal user,
-            ICharacterService characterService) =>
+            ICharacterService characterService,
+            IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest("Name is required.");
@@ -45,6 +47,7 @@ public static class CharacterEndpoints
                 return Results.Unauthorized();
 
             var character = await characterService.CreateAsync(campaignId, userId, request);
+            try { await activityLogService.LogAsync(campaignId, userId, ActivityType.CharacterAdded, character.Name); } catch { }
             return Results.Created($"/api/characters/{character.Id}", character);
         }).RequireAuthorization("ApiAuth");
 
@@ -52,7 +55,8 @@ public static class CharacterEndpoints
             Guid id,
             CharacterRequest request,
             ClaimsPrincipal user,
-            ICharacterService characterService) =>
+            ICharacterService characterService,
+            IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Name))
                 return Results.BadRequest("Name is required.");
@@ -69,13 +73,15 @@ public static class CharacterEndpoints
                 return Results.Forbid();
 
             var updated = await characterService.UpdateAsync(id, request);
+            if (updated) try { await activityLogService.LogAsync(existing.CampaignId, userId, ActivityType.CharacterEdited, existing.Name); } catch { }
             return updated ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 
         group.MapDelete("/{id:guid}", async (
             Guid id,
             ClaimsPrincipal user,
-            ICharacterService characterService) =>
+            ICharacterService characterService,
+            IActivityLogService activityLogService) =>
         {
             var existing = await characterService.GetByIdAsync(id);
             if (existing is null) return Results.NotFound();
@@ -89,6 +95,7 @@ public static class CharacterEndpoints
                 return Results.Forbid();
 
             var deleted = await characterService.DeleteAsync(id);
+            if (deleted) try { await activityLogService.LogAsync(existing.CampaignId, userId, ActivityType.CharacterRemoved, existing.Name); } catch { }
             return deleted ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 

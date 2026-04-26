@@ -123,6 +123,7 @@ app.MapLoreacleEndpoints();
 app.MapGameSessionEndpoints();
 app.MapNoteEndpoints();
 app.MapTranslationEndpoints();
+app.MapActivityLogEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

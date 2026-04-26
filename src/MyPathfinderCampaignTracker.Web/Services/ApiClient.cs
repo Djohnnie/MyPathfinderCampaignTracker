@@ -398,4 +398,15 @@ public class ApiClient(
     }
 
     private record FavoriteCampaignResponse(Guid? Id, string? Title);
+
+    public async Task<List<ActivityLogDto>> GetActivityLogsAsync(Guid campaignId)
+    {
+        return await GetJsonAsync<List<ActivityLogDto>>($"/api/campaigns/{campaignId}/activity/") ?? [];
+    }
+
+    public async Task LogCampaignOpenedAsync(Guid campaignId)
+    {
+        var (client, _) = await CreateClientAsync();
+        await client.PostAsync($"/api/campaigns/{campaignId}/activity/open", null);
+    }
 }

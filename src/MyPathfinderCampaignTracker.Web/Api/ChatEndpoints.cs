@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
+using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Web.Api;
 
@@ -20,7 +21,8 @@ public static class ChatEndpoints
             Guid campaignId,
             ChatMessageRequest request,
             ClaimsPrincipal user,
-            IChatMessageService chatService) =>
+            IChatMessageService chatService,
+            IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Content))
                 return Results.BadRequest("Bericht mag niet leeg zijn.");
@@ -30,6 +32,7 @@ public static class ChatEndpoints
                 return Results.Unauthorized();
 
             var message = await chatService.SendAsync(campaignId, userId, request.Content);
+            try { await activityLogService.LogAsync(campaignId, userId, ActivityType.ChatAdded); } catch { }
             return Results.Created($"/api/campaigns/{campaignId}/chat/{message.Id}", message);
         }).RequireAuthorization("ApiAuth");
 

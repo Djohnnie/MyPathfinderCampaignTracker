@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
+using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Web.Api;
 
@@ -35,7 +36,8 @@ public static class RecapEndpoints
             Guid campaignId,
             RecapRequest request,
             ClaimsPrincipal user,
-            IRecapService recapService) =>
+            IRecapService recapService,
+            IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Title))
                 return Results.BadRequest("Title is required.");
@@ -45,6 +47,7 @@ public static class RecapEndpoints
                 return Results.Unauthorized();
 
             var recap = await recapService.CreateAsync(campaignId, userId, request);
+            try { await activityLogService.LogAsync(campaignId, userId, ActivityType.RecapAdded, recap.Title); } catch { }
             return Results.Created($"/api/recaps/{recap.Id}", recap);
         }).RequireAuthorization("ApiAuth");
 
@@ -52,7 +55,8 @@ public static class RecapEndpoints
             Guid id,
             RecapRequest request,
             ClaimsPrincipal user,
-            IRecapService recapService) =>
+            IRecapService recapService,
+            IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Title))
                 return Results.BadRequest("Title is required.");
@@ -69,13 +73,15 @@ public static class RecapEndpoints
                 return Results.Forbid();
 
             var updated = await recapService.UpdateAsync(id, request);
+            if (updated) try { await activityLogService.LogAsync(existing.CampaignId, userId, ActivityType.RecapEdited, existing.Title); } catch { }
             return updated ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 
         group.MapDelete("/{id:guid}", async (
             Guid id,
             ClaimsPrincipal user,
-            IRecapService recapService) =>
+            IRecapService recapService,
+            IActivityLogService activityLogService) =>
         {
             var existing = await recapService.GetByIdAsync(id);
             if (existing is null) return Results.NotFound();
@@ -89,6 +95,7 @@ public static class RecapEndpoints
                 return Results.Forbid();
 
             var deleted = await recapService.DeleteAsync(id);
+            if (deleted) try { await activityLogService.LogAsync(existing.CampaignId, userId, ActivityType.RecapRemoved, existing.Title); } catch { }
             return deleted ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 

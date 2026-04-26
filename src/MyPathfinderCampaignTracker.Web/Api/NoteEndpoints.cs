@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
+using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Web.Api;
 
@@ -21,7 +22,8 @@ public static class NoteEndpoints
             CampaignNoteRequest request,
             ClaimsPrincipal user,
             ICampaignNoteService noteService,
-            ICampaignService campaignService) =>
+            ICampaignService campaignService,
+            IActivityLogService activityLogService) =>
         {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -38,6 +40,7 @@ public static class NoteEndpoints
                 return Results.BadRequest("Content is required.");
 
             var note = await noteService.CreateAsync(campaignId, userId, request);
+            try { await activityLogService.LogAsync(campaignId, userId, ActivityType.NoteAdded); } catch { }
             return Results.Created($"/api/campaigns/{campaignId}/notes/{note.Id}", note);
         }).RequireAuthorization("ApiAuth");
 
@@ -46,7 +49,8 @@ public static class NoteEndpoints
             Guid id,
             CampaignNoteRequest request,
             ClaimsPrincipal user,
-            ICampaignNoteService noteService) =>
+            ICampaignNoteService noteService,
+            IActivityLogService activityLogService) =>
         {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -63,6 +67,7 @@ public static class NoteEndpoints
                 return Results.BadRequest("Content is required.");
 
             var updated = await noteService.UpdateAsync(id, request);
+            if (updated) try { await activityLogService.LogAsync(campaignId, userId, ActivityType.NoteEdited); } catch { }
             return updated ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 
@@ -70,7 +75,8 @@ public static class NoteEndpoints
             Guid campaignId,
             Guid id,
             ClaimsPrincipal user,
-            ICampaignNoteService noteService) =>
+            ICampaignNoteService noteService,
+            IActivityLogService activityLogService) =>
         {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -84,6 +90,7 @@ public static class NoteEndpoints
                 return Results.Forbid();
 
             var deleted = await noteService.DeleteAsync(id);
+            if (deleted) try { await activityLogService.LogAsync(campaignId, userId, ActivityType.NoteRemoved); } catch { }
             return deleted ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 

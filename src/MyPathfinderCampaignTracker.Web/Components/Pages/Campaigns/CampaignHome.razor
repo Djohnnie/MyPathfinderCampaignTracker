@@ -2,7 +2,9 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using System.Security.Claims
-@using System.Runtime.InteropServices
+@using MyPathfinderCampaignTracker.Application.Models
+@using MyPathfinderCampaignTracker.Domain.Entities
+
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -292,6 +294,31 @@ else
             </MudPaper>
         </MudItem>
     </MudGrid>
+
+    @if (_activityLogs.Count > 0)
+    {
+        <MudDivider Class="my-6" />
+        <div class="pf-section-title mb-4">Recente activiteit</div>
+        <MudList T="string" Dense="true">
+            @foreach (var log in _activityLogs)
+            {
+                <MudListItem T="string">
+                    <div class="d-flex align-center" style="gap: 10px;">
+                        <MudIcon Icon="@GetActivityIcon(log.ActivityType)" Size="Size.Small"
+                                 Style="@($"color:{GetActivityColor(log.ActivityType)}; flex-shrink: 0;")" />
+                        <div>
+                            <MudText Typo="Typo.body2">
+                                <strong>@log.Username</strong> @GetActivityLabel(log)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @ToBrussels(log.OccurredAt).ToString("d MMM yyyy, HH:mm")
+                            </MudText>
+                        </div>
+                    </div>
+                </MudListItem>
+            }
+        </MudList>
+    }
 }
 
 @code {
@@ -307,6 +334,7 @@ else
     private CampaignDto? _campaign;
     private GameSessionDto? _nextSession;
     private bool _loading = true;
+    private List<ActivityLogDto> _activityLogs = [];
 
     private Guid _currentUserId;
     private bool _isAdmin;
@@ -339,6 +367,14 @@ else
 
         _favoriteCampaignId = FavoriteCampaignState.CampaignId;
         _loading = false;
+
+        // Fire-and-forget: log campaign opened and load activity — do not block render
+        _ = Task.Run(async () =>
+        {
+            await ApiClient.LogCampaignOpenedAsync(Id);
+            _activityLogs = await ApiClient.GetActivityLogsAsync(Id);
+            await InvokeAsync(StateHasChanged);
+        });
     }
 
     private async Task ToggleFavoriteAsync()
@@ -423,4 +459,57 @@ else
             _isTranslating = false;
         }
     }
+
+    private static string GetActivityLabel(ActivityLogDto log) => log.ActivityType switch
+    {
+        ActivityType.CharacterAdded   => $"voegde karakter {log.SubjectName} toe",
+        ActivityType.CharacterEdited  => $"bewerkte karakter {log.SubjectName}",
+        ActivityType.CharacterRemoved => $"verwijderde karakter {log.SubjectName}",
+        ActivityType.RecapAdded       => $"voegde recap '{log.SubjectName}' toe",
+        ActivityType.RecapEdited      => $"bewerkte recap '{log.SubjectName}'",
+        ActivityType.RecapRemoved     => $"verwijderde recap '{log.SubjectName}'",
+        ActivityType.ChatAdded        => "stuurde een bericht",
+        ActivityType.NoteAdded        => "voegde een notitie toe",
+        ActivityType.NoteEdited       => "bewerkte een notitie",
+        ActivityType.NoteRemoved      => "verwijderde een notitie",
+        ActivityType.SessionAdded     => $"planste sessie {log.SubjectName}",
+        ActivityType.SessionEdited    => $"bewerkte sessie {log.SubjectName}",
+        ActivityType.SessionRemoved   => $"verwijderde sessie {log.SubjectName}",
+        ActivityType.CampaignOpened   => "bezocht de campagnepagina",
+        _                             => log.ActivityType.ToString()
+    };
+
+    private static string GetActivityIcon(ActivityType type) => type switch
+    {
+        ActivityType.CharacterAdded or ActivityType.CharacterEdited or ActivityType.CharacterRemoved
+            => Icons.Material.Filled.Person,
+        ActivityType.RecapAdded or ActivityType.RecapEdited or ActivityType.RecapRemoved
+            => Icons.Material.Filled.MenuBook,
+        ActivityType.ChatAdded
+            => Icons.Material.Filled.Chat,
+        ActivityType.NoteAdded or ActivityType.NoteEdited or ActivityType.NoteRemoved
+            => Icons.Material.Filled.StickyNote2,
+        ActivityType.SessionAdded or ActivityType.SessionEdited or ActivityType.SessionRemoved
+            => Icons.Material.Filled.CalendarToday,
+        ActivityType.CampaignOpened
+            => Icons.Material.Filled.Visibility,
+        _ => Icons.Material.Filled.Circle
+    };
+
+    private static string GetActivityColor(ActivityType type) => type switch
+    {
+        ActivityType.CharacterAdded or ActivityType.CharacterEdited or ActivityType.CharacterRemoved
+            => "#8B1A1A",
+        ActivityType.RecapAdded or ActivityType.RecapEdited or ActivityType.RecapRemoved
+            => "#B8860B",
+        ActivityType.ChatAdded
+            => "#1A3A5C",
+        ActivityType.NoteAdded or ActivityType.NoteEdited or ActivityType.NoteRemoved
+            => "#4A1A5C",
+        ActivityType.SessionAdded or ActivityType.SessionEdited or ActivityType.SessionRemoved
+            => "#2A5C2A",
+        ActivityType.CampaignOpened
+            => "#555555",
+        _ => "#888888"
+    };
 }
