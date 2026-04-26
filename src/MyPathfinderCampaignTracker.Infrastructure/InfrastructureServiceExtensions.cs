@@ -44,9 +44,12 @@ public static class InfrastructureServiceExtensions
         if (!string.IsNullOrWhiteSpace(endpoint) && !string.IsNullOrWhiteSpace(apiKey))
         {
             services.AddSingleton<IChatClient>(_ =>
-                new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey))
+            {
+                var innerClient = new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey))
                     .GetChatClient(model)
-                    .AsIChatClient());
+                    .AsIChatClient();
+                return new FunctionInvokingChatClient(innerClient);
+            });
             services.AddSingleton<ILoreacleService, LoreacleService>();
             services.AddSingleton<IRecapTitleGeneratorService, RecapTitleGeneratorService>();
             services.AddSingleton<IRecapFormatterService, RecapFormatterService>();

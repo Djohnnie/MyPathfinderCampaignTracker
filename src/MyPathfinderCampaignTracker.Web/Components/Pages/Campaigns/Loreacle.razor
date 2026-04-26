@@ -123,10 +123,22 @@
 
         try
         {
-            var reply = await ApiClient.ChatWithLoreacleAsync(
+            var result = await ApiClient.ChatWithLoreacleAsync(
                 Id, new LoreacleRequest(userMessage));
 
-            _messages.Add((false, reply ?? "De Loreacle antwoordt niet..."));
+            if (result is null)
+            {
+                _messages.Add((false, "Er is iets misgegaan. Probeer het opnieuw."));
+            }
+            else if (result.HistoryCleared)
+            {
+                _messages.Clear();
+                _messages.Add((false, result.Reply));
+            }
+            else
+            {
+                _messages.Add((false, result.Reply));
+            }
         }
         catch
         {

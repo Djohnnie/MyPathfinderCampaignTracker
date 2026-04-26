@@ -10,6 +10,7 @@ public class LoreacleMessage
     public bool IsUser { get; set; }
     public bool IsCompacted { get; set; }
     public bool IsCompaction { get; set; }
+    public bool IsCleared { get; set; }
     public string Content { get; set; } = string.Empty;
     public DateTime SentAt { get; set; }
 }

@@ -9,7 +9,7 @@ public class LoreacleHistoryRepository(AppDbContext dbContext) : ILoreacleHistor
 {
     public async Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAndUserAsync(Guid campaignId, Guid userId) =>
         await dbContext.LoreacleMessages
-            .Where(m => m.CampaignId == campaignId && m.UserId == userId)
+            .Where(m => m.CampaignId == campaignId && m.UserId == userId && !m.IsCleared)
             .OrderBy(m => m.SentAt)
             .ToListAsync();
 
@@ -26,4 +26,9 @@ public class LoreacleHistoryRepository(AppDbContext dbContext) : ILoreacleHistor
             .Where(m => idSet.Contains(m.Id))
             .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsCompacted, true));
     }
+
+    public async Task ClearByCampaignAndUserAsync(Guid campaignId, Guid userId) =>
+        await dbContext.LoreacleMessages
+            .Where(m => m.CampaignId == campaignId && m.UserId == userId && !m.IsCleared)
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsCleared, true));
 }

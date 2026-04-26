@@ -1,10 +1,11 @@
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
 
 namespace MyPathfinderCampaignTracker.Infrastructure.AzureOpenAI;
 
-public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
+public sealed class LoreacleService(IChatClient chatClient, IServiceScopeFactory scopeFactory) : ILoreacleService
 {
     private const string SystemPromptTemplate =
         """
@@ -60,10 +61,12 @@ public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
         Always speak Dutch, even if the user asks in another language. You are a Dutch oracle and must always respond in Dutch, regardless of the user's language.
         """;
 
-    public async Task<string> ChatAsync(
+    public async Task<(string Reply, bool HistoryCleared)> ChatAsync(
         string userMessage,
         string campaignTitle,
         string campaignDescription,
+        Guid campaignId,
+        Guid userId,
         IReadOnlyList<string> recapSummaries,
         IReadOnlyList<string> characterSummaries,
         IReadOnlyList<string> sessionSummaries,
@@ -105,8 +108,67 @@ public sealed class LoreacleService(IChatClient chatClient) : ILoreacleService
 
         messages.Add(new ChatMessage(ChatRole.User, userMessage));
 
-        var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-        return response.Text ?? string.Empty;
+        var myCharacterTool = AIFunctionFactory.Create(
+            async () =>
+            {
+                await using var scope = scopeFactory.CreateAsyncScope();
+                var characterRepository = scope.ServiceProvider.GetRequiredService<ICharacterRepository>();
+                var userCharacters = await characterRepository.GetByUserAsync(userId);
+                var character = userCharacters
+                    .Where(c => c.CampaignId == campaignId && !c.KilledInAction)
+                    .OrderBy(c => c.CreatedAt)
+                    .FirstOrDefault();
+
+                if (character is null)
+                    return "De speler heeft geen actief karakter in deze campagne.";
+
+                static int Mod(int score) => (score - 10) / 2;
+                static string ModStr(int score) => Mod(score) >= 0 ? $"+{Mod(score)}" : $"{Mod(score)}";
+
+                var parts = new List<string>
+                {
+                    $"Naam: {character.Name}",
+                    $"Ras: {character.Race}",
+                    $"Klasse: {character.CharacterClass}",
+                    $"Level: {character.Level}",
+                    $"STR {character.Strength} ({ModStr(character.Strength)}), " +
+                    $"DEX {character.Dexterity} ({ModStr(character.Dexterity)}), " +
+                    $"CON {character.Constitution} ({ModStr(character.Constitution)}), " +
+                    $"INT {character.Intelligence} ({ModStr(character.Intelligence)}), " +
+                    $"WIS {character.Wisdom} ({ModStr(character.Wisdom)}), " +
+                    $"CHA {character.Charisma} ({ModStr(character.Charisma)})",
+                };
+                if (!string.IsNullOrWhiteSpace(character.Alignment)) parts.Add($"Gezindheid: {character.Alignment}");
+                if (!string.IsNullOrWhiteSpace(character.Languages)) parts.Add($"Talen: {character.Languages}");
+                if (!string.IsNullOrWhiteSpace(character.Appearance)) parts.Add($"Uiterlijk: {character.Appearance}");
+                if (!string.IsNullOrWhiteSpace(character.Personality)) parts.Add($"Persoonlijkheid: {character.Personality}");
+                if (!string.IsNullOrWhiteSpace(character.IdealsAndGoals)) parts.Add($"Idealen/doelen: {character.IdealsAndGoals}");
+                if (!string.IsNullOrWhiteSpace(character.Flaws)) parts.Add($"Tekortkomingen: {character.Flaws}");
+                if (!string.IsNullOrWhiteSpace(character.Backstory)) parts.Add($"Achtergrond: {character.Backstory}");
+
+                return string.Join("\n", parts);
+            },
+            name: "get_my_character",
+            description: "Haalt alle informatie op over het actieve karakter van de huidige speler in deze campagne.");
+
+        bool historyCleared = false;
+
+        var clearHistoryTool = AIFunctionFactory.Create(
+            async () =>
+            {
+                await using var scope = scopeFactory.CreateAsyncScope();
+                var historyRepo = scope.ServiceProvider.GetRequiredService<ILoreacleHistoryRepository>();
+                await historyRepo.ClearByCampaignAndUserAsync(campaignId, userId);
+                historyCleared = true;
+                return "De chatgeschiedenis is gewist.";
+            },
+            name: "clear_chat_history",
+            description: "Wist de volledige chatgeschiedenis van de huidige speler in deze campagne, inclusief alle eerdere samenvattingen.");
+
+        var options = new ChatOptions { Tools = [myCharacterTool, clearHistoryTool] };
+
+        var response = await chatClient.GetResponseAsync(messages, options, cancellationToken: cancellationToken);
+        return (response.Text ?? string.Empty, historyCleared);
     }
 
     public async Task<string> CompactAsync(

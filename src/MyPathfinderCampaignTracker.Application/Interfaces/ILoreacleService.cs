@@ -4,10 +4,12 @@ namespace MyPathfinderCampaignTracker.Application.Interfaces;
 
 public interface ILoreacleService
 {
-    Task<string> ChatAsync(
+    Task<(string Reply, bool HistoryCleared)> ChatAsync(
         string userMessage,
         string campaignTitle,
         string campaignDescription,
+        Guid campaignId,
+        Guid userId,
         IReadOnlyList<string> recapSummaries,
         IReadOnlyList<string> characterSummaries,
         IReadOnlyList<string> sessionSummaries,

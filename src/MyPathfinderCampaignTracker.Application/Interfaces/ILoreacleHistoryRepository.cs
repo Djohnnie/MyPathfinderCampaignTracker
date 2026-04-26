@@ -8,4 +8,5 @@ public interface ILoreacleHistoryRepository
     Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAndUserAsync(Guid campaignId, Guid userId);
     Task AddAsync(LoreacleMessage message);
     Task MarkAsCompactedAsync(IEnumerable<Guid> ids);
+    Task ClearByCampaignAndUserAsync(Guid campaignId, Guid userId);
 }

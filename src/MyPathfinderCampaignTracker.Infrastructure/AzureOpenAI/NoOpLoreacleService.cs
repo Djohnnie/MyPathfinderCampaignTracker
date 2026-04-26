@@ -5,10 +5,12 @@ namespace MyPathfinderCampaignTracker.Infrastructure.AzureOpenAI;
 
 public sealed class NoOpLoreacleService : ILoreacleService
 {
-    public Task<string> ChatAsync(
+    public Task<(string Reply, bool HistoryCleared)> ChatAsync(
         string userMessage,
         string campaignTitle,
         string campaignDescription,
+        Guid campaignId,
+        Guid userId,
         IReadOnlyList<string> recapSummaries,
         IReadOnlyList<string> characterSummaries,
         IReadOnlyList<string> sessionSummaries,
@@ -16,8 +18,8 @@ public sealed class NoOpLoreacleService : ILoreacleService
         IReadOnlyList<LoreacleMessageDto> history,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(
-            "Loreacle is not configured. Add AzureOpenAI settings to appsettings.json.");
+        return Task.FromResult<(string, bool)>(
+            ("Loreacle is not configured. Add AzureOpenAI settings to appsettings.json.", false));
     }
 
     public Task<string> CompactAsync(

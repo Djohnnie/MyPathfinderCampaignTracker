@@ -111,10 +111,12 @@ public static class LoreacleEndpoints
                 var allMessages = await historyRepo.GetByCampaignAndUserAsync(campaignId, userId);
                 var history = BuildContext(allMessages);
 
-                var reply = await loreacleService.ChatAsync(
+                var (reply, historyCleared) = await loreacleService.ChatAsync(
                     request.UserMessage,
                     campaign.Title,
                     campaign.Description,
+                    campaignId,
+                    userId,
                     recapSummaries,
                     characterSummaries,
                     sessionSummaries,
@@ -122,31 +124,35 @@ public static class LoreacleEndpoints
                     history,
                     ct);
 
-                // Persist user message and reply
-                var sentAt = DateTime.UtcNow;
-                await historyRepo.AddAsync(new LoreacleMessage
+                // Persist user message and reply (only if history was not cleared — if cleared,
+                // the DB is already empty so we skip saving this exchange to keep it clean)
+                if (!historyCleared)
                 {
-                    Id = Guid.NewGuid(),
-                    CampaignId = campaignId,
-                    UserId = userId,
-                    IsUser = true,
-                    Content = request.UserMessage,
-                    SentAt = sentAt
-                });
-                await historyRepo.AddAsync(new LoreacleMessage
-                {
-                    Id = Guid.NewGuid(),
-                    CampaignId = campaignId,
-                    UserId = userId,
-                    IsUser = false,
-                    Content = reply,
-                    SentAt = sentAt.AddTicks(1)
-                });
+                    var sentAt = DateTime.UtcNow;
+                    await historyRepo.AddAsync(new LoreacleMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        CampaignId = campaignId,
+                        UserId = userId,
+                        IsUser = true,
+                        Content = request.UserMessage,
+                        SentAt = sentAt
+                    });
+                    await historyRepo.AddAsync(new LoreacleMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        CampaignId = campaignId,
+                        UserId = userId,
+                        IsUser = false,
+                        Content = reply,
+                        SentAt = sentAt.AddTicks(1)
+                    });
 
-                // Trigger compaction if enough uncompacted messages have accumulated
-                await TryCompactAsync(campaignId, userId, campaign.Title, historyRepo, loreacleService, ct);
+                    // Trigger compaction if enough uncompacted messages have accumulated
+                    await TryCompactAsync(campaignId, userId, campaign.Title, historyRepo, loreacleService, ct);
+                }
 
-                return Results.Ok(new LoreacleResponse(reply));
+                return Results.Ok(new LoreacleResponse(reply, historyCleared));
             })
             .RequireAuthorization("ApiAuth");
 

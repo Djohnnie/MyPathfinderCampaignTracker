@@ -4,4 +4,4 @@ public record LoreacleMessageDto(bool IsUser, string Content);
 
 public record LoreacleRequest(string UserMessage);
 
-public record LoreacleResponse(string Reply);
+public record LoreacleResponse(string Reply, bool HistoryCleared = false);
