@@ -284,4 +284,21 @@ public class ApiClient(
         var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/notes/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<bool> UpdateDescriptionAsync(Guid campaignId, string description)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PatchAsJsonAsync($"/api/campaigns/{campaignId}/description", new DescriptionUpdateRequest(description));
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<string?> TranslateToNlAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync("/api/translate/", new TranslationRequest(text));
+        if (!response.IsSuccessStatusCode) return null;
+        var result = await response.Content.ReadFromJsonAsync<TranslationResponse>();
+        return result?.TranslatedText;
+    }
 }

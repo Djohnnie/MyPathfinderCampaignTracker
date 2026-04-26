@@ -1,8 +1,10 @@
 @page "/campaigns/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
+@using System.Security.Claims
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 <PageTitle>@(_campaign?.Title ?? "Campagne") — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
@@ -29,7 +31,61 @@ else
         }
     </div>
 
-    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">@_campaign.Description</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="@(_isEditingDescription ? "mb-2" : "mb-6")">
+        @if (_isEditingDescription)
+        {
+            <div>
+                <MudTextField @bind-Value="_editDescriptionValue" Variant="Variant.Outlined" Lines="3"
+                              Label="Beschrijving" Class="mb-2" Style="font-family: inherit;" />
+                <div class="d-flex align-center" style="gap: 8px;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                               OnClick="SaveDescriptionAsync" Disabled="_isSavingDescription"
+                               Style="text-transform: none; font-weight: 600;">
+                        @if (_isSavingDescription)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-1" />
+                        }
+                        Opslaan
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="CancelEditDescription"
+                               Style="text-transform: none;">Annuleren</MudButton>
+                    <MudTooltip Text="Vertalen naar Nederlands">
+                        <MudIconButton Icon="@Icons.Material.Filled.Translate" Size="Size.Small"
+                                       Color="Color.Secondary" OnClick="TranslateInEditModeAsync"
+                                       Disabled="_isTranslating" />
+                    </MudTooltip>
+                    @if (_isTranslating)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Secondary" />
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <span>@_campaign.Description</span>
+            @if (_isPlayerOrAdmin)
+            {
+                <MudTooltip Text="Beschrijving bewerken">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Default"
+                                   OnClick="StartEditDescription" Class="ml-1" />
+                </MudTooltip>
+                <MudTooltip Text="Vertalen naar Nederlands">
+                    <MudIconButton Icon="@Icons.Material.Filled.Translate" Size="Size.Small" Color="Color.Default"
+                                   OnClick="TranslateAndEditAsync" Disabled="_isTranslating" Class="ml-1" />
+                </MudTooltip>
+                @if (_isTranslating)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Secondary" Class="ml-1" />
+                }
+            }
+        }
+    </MudText>
+
+    @if (!_isEditingDescription)
+    {
+        <div class="mb-6"></div>
+    }
 
     <MudGrid Spacing="3" Class="mb-6">
         <MudItem xs="12" sm="6" md="3" Style="display: flex;">
@@ -214,16 +270,105 @@ else
 
 @code {
     [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthTask { get; set; }
 
     private CampaignDto? _campaign;
     private GameSessionDto? _nextSession;
     private bool _loading = true;
 
+    private Guid _currentUserId;
+    private bool _isAdmin;
+    private bool _isPlayerOrAdmin;
+
+    // Description editing
+    private bool _isEditingDescription;
+    private string _editDescriptionValue = string.Empty;
+    private bool _isSavingDescription;
+    private bool _isTranslating;
+
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthTask!;
+        Guid.TryParse(authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _currentUserId);
+        _isAdmin = authState.User.IsInRole("Admin");
+
         _campaign = await ApiClient.GetCampaignAsync(Id);
         if (_campaign is not null && !_campaign.EndDate.HasValue)
             _nextSession = await ApiClient.GetNextGameSessionAsync(Id);
+
+        _isPlayerOrAdmin = _isAdmin || (_campaign?.Players.Any(p => p.Id == _currentUserId) ?? false);
         _loading = false;
+    }
+
+    private void StartEditDescription()
+    {
+        _editDescriptionValue = _campaign?.Description ?? string.Empty;
+        _isEditingDescription = true;
+    }
+
+    private void CancelEditDescription() => _isEditingDescription = false;
+
+    private async Task SaveDescriptionAsync()
+    {
+        if (_campaign is null) return;
+        _isSavingDescription = true;
+        try
+        {
+            var ok = await ApiClient.UpdateDescriptionAsync(_campaign.Id, _editDescriptionValue);
+            if (ok)
+            {
+                _campaign.Description = _editDescriptionValue;
+                _isEditingDescription = false;
+                Snackbar.Add("Beschrijving bijgewerkt.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Opslaan mislukt.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isSavingDescription = false;
+        }
+    }
+
+    private async Task TranslateAndEditAsync()
+    {
+        if (_campaign is null) return;
+        _isTranslating = true;
+        try
+        {
+            var translated = await ApiClient.TranslateToNlAsync(_campaign.Description);
+            if (translated is not null)
+            {
+                _editDescriptionValue = translated;
+                _isEditingDescription = true;
+            }
+            else
+            {
+                Snackbar.Add("Vertaling mislukt.", Severity.Warning);
+            }
+        }
+        finally
+        {
+            _isTranslating = false;
+        }
+    }
+
+    private async Task TranslateInEditModeAsync()
+    {
+        _isTranslating = true;
+        try
+        {
+            var translated = await ApiClient.TranslateToNlAsync(_editDescriptionValue);
+            if (translated is not null)
+                _editDescriptionValue = translated;
+            else
+                Snackbar.Add("Vertaling mislukt.", Severity.Warning);
+        }
+        finally
+        {
+            _isTranslating = false;
+        }
     }
 }

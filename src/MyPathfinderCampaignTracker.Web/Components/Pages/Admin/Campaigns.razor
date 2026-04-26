@@ -93,8 +93,24 @@ else
                               Required="true" MaxLength="200" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Description" Label="Beschrijving" Variant="Variant.Outlined"
-                              Lines="2" />
+                <div class="d-flex align-start" style="gap: 6px;">
+                    <MudTextField @bind-Value="_form.Description" Label="Beschrijving" Variant="Variant.Outlined"
+                                  Lines="@(_descriptionExpanded ? 6 : 2)" Style="flex: 1;" />
+                    <div class="d-flex flex-column mt-2" style="gap: 2px;">
+                        <MudTooltip Text="@(_descriptionExpanded ? "Verkleinen" : "Uitbreiden")">
+                            <MudIconButton Icon="@(_descriptionExpanded ? Icons.Material.Filled.UnfoldLess : Icons.Material.Filled.UnfoldMore)"
+                                           Size="Size.Small" OnClick="@(() => _descriptionExpanded = !_descriptionExpanded)" />
+                        </MudTooltip>
+                        <MudTooltip Text="Vertalen naar Nederlands">
+                            <MudIconButton Icon="@Icons.Material.Filled.Translate" Size="Size.Small" Color="Color.Secondary"
+                                           OnClick="TranslateDescriptionDialogAsync" Disabled="_isTranslatingDescription" />
+                        </MudTooltip>
+                        @if (_isTranslatingDescription)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Secondary" />
+                        }
+                    </div>
+                </div>
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Link" Label="Link (URL)" Variant="Variant.Outlined"
@@ -190,6 +206,10 @@ else
     private bool _deleteDialogOpen;
     private CampaignDto? _deletingCampaign;
 
+    // Description helpers in dialog
+    private bool _descriptionExpanded;
+    private bool _isTranslatingDescription;
+
     private readonly DialogOptions _dialogOptions = new()
     {
         MaxWidth = MaxWidth.Medium,
@@ -225,6 +245,7 @@ else
         _startDate = DateTime.Today;
         _endDate = null;
         _selectedPlayers = [];
+        _descriptionExpanded = false;
         RefreshAvailableUsers();
         _dialogOpen = true;
     }
@@ -242,6 +263,7 @@ else
         _startDate = campaign.StartDate;
         _endDate = campaign.EndDate;
         _selectedPlayers = [.. campaign.Players];
+        _descriptionExpanded = false;
         RefreshAvailableUsers();
         _dialogOpen = true;
     }
@@ -267,6 +289,24 @@ else
     }
 
     private void CloseDialog() => _dialogOpen = false;
+
+    private async Task TranslateDescriptionDialogAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Description)) return;
+        _isTranslatingDescription = true;
+        try
+        {
+            var translated = await ApiClient.TranslateToNlAsync(_form.Description);
+            if (translated is not null)
+                _form.Description = translated;
+            else
+                Snackbar.Add("Vertaling mislukt.", Severity.Warning);
+        }
+        finally
+        {
+            _isTranslatingDescription = false;
+        }
+    }
 
     private async Task SaveCampaign()
     {

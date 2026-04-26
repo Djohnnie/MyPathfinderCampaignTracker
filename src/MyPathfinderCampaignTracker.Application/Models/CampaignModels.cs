@@ -21,3 +21,5 @@ public record CampaignRequest(
     string ExtensiveInformation,
     DateTime StartDate,
     DateTime? EndDate);
+
+public record DescriptionUpdateRequest(string Description);

@@ -48,12 +48,14 @@ public static class InfrastructureServiceExtensions
             services.AddSingleton<ILoreacleService, LoreacleService>();
             services.AddSingleton<IRecapTitleGeneratorService, RecapTitleGeneratorService>();
             services.AddSingleton<IRecapFormatterService, RecapFormatterService>();
+            services.AddSingleton<ITranslationService, TranslationService>();
         }
         else
         {
             services.AddSingleton<ILoreacleService, NoOpLoreacleService>();
             services.AddSingleton<IRecapTitleGeneratorService, NoOpRecapTitleGeneratorService>();
             services.AddSingleton<IRecapFormatterService, NoOpRecapFormatterService>();
+            services.AddSingleton<ITranslationService, NoOpTranslationService>();
         }
 
         return services;

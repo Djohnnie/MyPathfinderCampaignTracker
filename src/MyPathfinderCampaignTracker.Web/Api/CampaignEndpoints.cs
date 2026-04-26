@@ -67,6 +67,21 @@ public static class CampaignEndpoints
             return result ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAdmin");
 
+        group.MapPatch("/{id:guid}/description", async (Guid id, DescriptionUpdateRequest req, ClaimsPrincipal user, ICampaignService campaignService) =>
+        {
+            var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId)) return Results.Unauthorized();
+
+            var campaign = await campaignService.GetByIdAsync(id);
+            if (campaign is null) return Results.NotFound();
+
+            if (!user.IsInRole("Admin") && !campaign.Players.Any(p => p.Id == userId))
+                return Results.Forbid();
+
+            var updated = await campaignService.UpdateDescriptionAsync(id, req.Description);
+            return updated ? Results.Ok() : Results.NotFound();
+        }).RequireAuthorization("ApiAuth");
+
         return routes;
     }
 }

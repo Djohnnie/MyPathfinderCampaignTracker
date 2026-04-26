@@ -95,6 +95,17 @@ public class CampaignService(ICampaignRepository campaignRepository) : ICampaign
         return true;
     }
 
+    public async Task<bool> UpdateDescriptionAsync(Guid campaignId, string description)
+    {
+        var campaign = await campaignRepository.GetByIdAsync(campaignId);
+        if (campaign is null) return false;
+
+        campaign.Description = description;
+        campaign.UpdatedAt = DateTime.UtcNow;
+        await campaignRepository.UpdateAsync(campaign);
+        return true;
+    }
+
     private static CampaignDto MapToDto(Campaign c) => new()
     {
         Id = c.Id,
