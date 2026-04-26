@@ -68,7 +68,7 @@ The drawer is **always dark** in both light and dark mode — intentional tavern
 
 CSS utility classes (defined in `wwwroot/app.css`):
 - `.fantasy-card` — crimson border + `◆` corner ornaments via `::before`/`::after`
-- `.fantasy-divider` — Cinzel-lettered section separator with flanking gold lines (used in the NavMenu "Beheer" section)
+- `.fantasy-divider` — Cinzel-lettered section separator with flanking lines. Since the drawer is always dark, `.mud-drawer .fantasy-divider` is scoped to gold (`#D4AF37`) so it stays readable in both light and dark mode.
 - `.pf-section-title` — heading with a crimson-to-gold gradient underline accent
 
 ---
@@ -99,7 +99,7 @@ CSS utility classes (defined in `wwwroot/app.css`):
 - **API endpoints** live in `Api/` as static extension methods on `IEndpointRouteBuilder`:
   - `AuthEndpoints.cs` → `MapAuthEndpoints()` → `/api/auth/*`
   - `UserManagementEndpoints.cs` → `MapUserManagementEndpoints()` → `/api/users/*`
-  - `ProfileEndpoints.cs` → `MapProfileEndpoints()` → `/api/profile/*`
+  - `ProfileEndpoints.cs` → `MapProfileEndpoints()` → `/api/profile/*` (dark mode toggle, favorite campaign GET/PUT)
   - `CampaignEndpoints.cs` → `MapCampaignEndpoints()` → `/api/campaigns/*`
   - `CharacterEndpoints.cs` → `MapCharacterEndpoints()` → `/api/campaigns/{id}/characters/*`
   - `RecapEndpoints.cs` → `MapRecapEndpoints()` → `/api/campaigns/{id}/recaps/*`
@@ -107,6 +107,8 @@ CSS utility classes (defined in `wwwroot/app.css`):
 - **Blazor components** live in `Components/`.
 - **Scoped service** `Services/ApiClient.cs` — wraps `IHttpClientFactory("ApiClient")`, extracts the `"access_token"` claim from auth state, and attaches it as a Bearer header. Use this for all Interactive Server component → API calls.
 - **Singleton service** `Services/LoginTicketService.cs` — manages short-lived login tickets (2-min TTL) used to hand off session creation from Blazor Interactive Server to an SSR Minimal API endpoint.
+- **Scoped service** `Services/FavoriteCampaignState.cs` — per-circuit reactive state for the user's favorite campaign (`CampaignId`, `CampaignTitle`, `IsLoaded`). Fires `OnChange` event so NavMenu updates instantly when toggled anywhere. Registered via `AddScoped<FavoriteCampaignState>()`.
+- **Shared components** live in `Components/Shared/`. `CharacterDialog.razor` is used by both the campaign characters page and the my-characters page — do not duplicate character dialog logic.
 
 ---
 
@@ -163,17 +165,19 @@ All pages are Interactive Server (inherited from the root `<Routes @rendermode="
 public class User
 {
     public Guid Id { get; set; }
-    public string Username { get; set; }     // unique index in EF
-    public string PasswordHash { get; set; } // BCrypt
+    public string Username { get; set; }           // unique index in EF
+    public string PasswordHash { get; set; }       // BCrypt
     public bool IsAdmin { get; set; }
     public bool IsApproved { get; set; }
-    public bool IsDarkMode { get; set; }     // persisted UI preference
+    public bool IsDarkMode { get; set; }           // persisted UI preference
+    public Guid? FavoriteCampaignId { get; set; }  // FK → Campaign (SetNull on delete)
     public DateTime CreatedAt { get; set; }
 }
 ```
 - Roles derived from `IsAdmin`: admin → `"Admin"` role claim, else `"User"`.
 - Unapproved users cannot log in.
 - `IsDarkMode` saved via `PUT /api/profile/darkmode` on toggle; loaded from `"dark_mode"` cookie claim on layout init.
+- `FavoriteCampaignId` saved via `PUT /api/profile/favorite-campaign`; loaded into `FavoriteCampaignState` on circuit init. The favorite campaign section appears in NavMenu only when set. Heart toggle is on the campaign detail page (`CampaignHome.razor`), not on the campaign list tiles.
 
 ### Campaign
 ```csharp
@@ -221,12 +225,14 @@ public class Character
     public string? Flaws { get; set; }                // optional flaws and weaknesses
     public string? Languages { get; set; }            // optional, comma-separated languages
     public string? Appearance { get; set; }           // optional physical description
+    public byte[]? PhotoData { get; set; }            // optional 512×512 JPEG avatar blob
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
 ```
 - Any user in a campaign can create/edit/delete their own characters. Admins can edit/delete any character.
 - Ability score modifier = `(score - 10) / 2` (displayed alongside raw scores in the UI).
+- `PhotoData` is uploaded via `CharacterDialog`, resized to 512×512 and stored as JPEG. Rendered as a circular avatar on character tiles. Photo upload/edit is part of the shared `CharacterDialog` component.
 
 ### Recap
 ```csharp
@@ -317,6 +323,8 @@ dotnet ef migrations add <Name> \
   --startup-project src/MyPathfinderCampaignTracker.Web
 ```
 Migrations are applied automatically on startup — no manual `dotnet ef database update` needed.
+
+> **Tip:** If Visual Studio is running the app its debug DLLs are locked. Build with `--configuration Release` first, then add the migration with `--no-build --configuration Release` to use the unlocked Release output.
 
 ---
 
