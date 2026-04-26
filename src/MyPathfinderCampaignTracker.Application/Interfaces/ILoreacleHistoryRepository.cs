@@ -5,7 +5,7 @@ namespace MyPathfinderCampaignTracker.Application.Interfaces;
 
 public interface ILoreacleHistoryRepository
 {
-    Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAsync(Guid campaignId);
+    Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAndUserAsync(Guid campaignId, Guid userId);
     Task AddAsync(LoreacleMessage message);
     Task MarkAsCompactedAsync(IEnumerable<Guid> ids);
 }

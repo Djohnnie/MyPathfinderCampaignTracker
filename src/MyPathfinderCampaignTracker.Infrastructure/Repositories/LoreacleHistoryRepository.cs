@@ -7,9 +7,9 @@ namespace MyPathfinderCampaignTracker.Infrastructure.Repositories;
 
 public class LoreacleHistoryRepository(AppDbContext dbContext) : ILoreacleHistoryRepository
 {
-    public async Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAsync(Guid campaignId) =>
+    public async Task<IReadOnlyList<LoreacleMessage>> GetByCampaignAndUserAsync(Guid campaignId, Guid userId) =>
         await dbContext.LoreacleMessages
-            .Where(m => m.CampaignId == campaignId)
+            .Where(m => m.CampaignId == campaignId && m.UserId == userId)
             .OrderBy(m => m.SentAt)
             .ToListAsync();
 

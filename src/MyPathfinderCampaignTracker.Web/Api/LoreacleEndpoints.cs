@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MyPathfinderCampaignTracker.Application.Interfaces;
 using MyPathfinderCampaignTracker.Application.Models;
 using MyPathfinderCampaignTracker.Domain.Entities;
@@ -16,11 +17,15 @@ public static class LoreacleEndpoints
 
     public static IEndpointRouteBuilder MapLoreacleEndpoints(this IEndpointRouteBuilder routes)
     {
-        // GET history — only original messages (no compaction rows)
+        // GET history — only original messages (no compaction rows), scoped to current user
         routes.MapGet("/api/campaigns/{campaignId:guid}/loreacle/history",
-            async (Guid campaignId, ILoreacleHistoryRepository historyRepo) =>
+            async (Guid campaignId, ClaimsPrincipal user, ILoreacleHistoryRepository historyRepo) =>
             {
-                var messages = await historyRepo.GetByCampaignAsync(campaignId);
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out var userId))
+                    return Results.Unauthorized();
+
+                var messages = await historyRepo.GetByCampaignAndUserAsync(campaignId, userId);
                 var dtos = messages
                     .Where(m => !m.IsCompaction)
                     .Select(m => new LoreacleMessageDto(m.IsUser, m.Content))
@@ -33,6 +38,7 @@ public static class LoreacleEndpoints
             async (
                 Guid campaignId,
                 LoreacleRequest request,
+                ClaimsPrincipal user,
                 ICampaignService campaignService,
                 ICharacterService characterService,
                 IRecapService recapService,
@@ -42,6 +48,10 @@ public static class LoreacleEndpoints
                 ILoreacleHistoryRepository historyRepo,
                 CancellationToken ct) =>
             {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdClaim, out var userId))
+                    return Results.Unauthorized();
+
                 var campaign = await campaignService.GetByIdAsync(campaignId);
                 if (campaign is null)
                     return Results.NotFound();
@@ -98,7 +108,7 @@ public static class LoreacleEndpoints
                     .ToList();
 
                 // Build AI context: last compaction + all non-compaction messages after it
-                var allMessages = await historyRepo.GetByCampaignAsync(campaignId);
+                var allMessages = await historyRepo.GetByCampaignAndUserAsync(campaignId, userId);
                 var history = BuildContext(allMessages);
 
                 var reply = await loreacleService.ChatAsync(
@@ -118,6 +128,7 @@ public static class LoreacleEndpoints
                 {
                     Id = Guid.NewGuid(),
                     CampaignId = campaignId,
+                    UserId = userId,
                     IsUser = true,
                     Content = request.UserMessage,
                     SentAt = sentAt
@@ -126,13 +137,14 @@ public static class LoreacleEndpoints
                 {
                     Id = Guid.NewGuid(),
                     CampaignId = campaignId,
+                    UserId = userId,
                     IsUser = false,
                     Content = reply,
                     SentAt = sentAt.AddTicks(1)
                 });
 
                 // Trigger compaction if enough uncompacted messages have accumulated
-                await TryCompactAsync(campaignId, campaign.Title, historyRepo, loreacleService, ct);
+                await TryCompactAsync(campaignId, userId, campaign.Title, historyRepo, loreacleService, ct);
 
                 return Results.Ok(new LoreacleResponse(reply));
             })
@@ -166,12 +178,13 @@ public static class LoreacleEndpoints
 
     private static async Task TryCompactAsync(
         Guid campaignId,
+        Guid userId,
         string campaignTitle,
         ILoreacleHistoryRepository historyRepo,
         ILoreacleService loreacleService,
         CancellationToken ct)
     {
-        var allMessages = await historyRepo.GetByCampaignAsync(campaignId);
+        var allMessages = await historyRepo.GetByCampaignAndUserAsync(campaignId, userId);
 
         var uncompacted = allMessages
             .Where(m => !m.IsCompaction && !m.IsCompacted)
@@ -198,6 +211,7 @@ public static class LoreacleEndpoints
         {
             Id = Guid.NewGuid(),
             CampaignId = campaignId,
+            UserId = userId,
             IsUser = false,
             IsCompaction = true,
             Content = summary,

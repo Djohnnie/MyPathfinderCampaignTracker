@@ -133,7 +133,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .HasForeignKey(m => m.CampaignId)
                   .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasIndex(m => new { m.CampaignId, m.SentAt });
+            entity.HasOne(m => m.User)
+                  .WithMany()
+                  .HasForeignKey(m => m.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(m => new { m.CampaignId, m.UserId, m.SentAt });
         });
     }
 }

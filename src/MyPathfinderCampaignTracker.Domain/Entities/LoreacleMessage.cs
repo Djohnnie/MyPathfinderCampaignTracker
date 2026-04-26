@@ -5,6 +5,8 @@ public class LoreacleMessage
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
     public Campaign Campaign { get; set; } = null!;
+    public Guid UserId { get; set; }
+    public User User { get; set; } = null!;
     public bool IsUser { get; set; }
     public bool IsCompacted { get; set; }
     public bool IsCompaction { get; set; }
