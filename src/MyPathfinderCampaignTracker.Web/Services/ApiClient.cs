@@ -337,4 +337,20 @@ public class ApiClient(
         var result = await response.Content.ReadFromJsonAsync<TranslationResponse>();
         return result?.TranslatedText;
     }
+
+    public async Task<(Guid Id, string Title)?> GetFavoriteCampaignAsync()
+    {
+        var client = await CreateClientAsync();
+        var result = await client.GetFromJsonAsync<FavoriteCampaignResponse>("/api/profile/favorite-campaign");
+        if (result?.Id is null) return null;
+        return (result.Id.Value, result.Title ?? string.Empty);
+    }
+
+    public async Task SetFavoriteCampaignAsync(Guid? campaignId)
+    {
+        var client = await CreateClientAsync();
+        await client.PutAsJsonAsync("/api/profile/favorite-campaign", new { campaignId });
+    }
+
+    private record FavoriteCampaignResponse(Guid? Id, string? Title);
 }

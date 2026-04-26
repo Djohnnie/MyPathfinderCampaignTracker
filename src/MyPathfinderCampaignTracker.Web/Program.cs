@@ -81,6 +81,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 });
 
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<FavoriteCampaignState>();
 builder.Services.AddSingleton<LoginTicketService>();
 
 var app = builder.Build();

@@ -22,6 +22,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(u => u.Username).IsUnique();
             entity.Property(u => u.Username).IsRequired().HasMaxLength(100);
             entity.Property(u => u.PasswordHash).IsRequired();
+
+            entity.HasOne<Campaign>()
+                  .WithMany()
+                  .HasForeignKey(u => u.FavoriteCampaignId)
+                  .OnDelete(DeleteBehavior.SetNull)
+                  .IsRequired(false);
         });
 
         modelBuilder.Entity<Campaign>(entity =>

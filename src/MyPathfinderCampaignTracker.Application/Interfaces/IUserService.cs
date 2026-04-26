@@ -12,4 +12,6 @@ public interface IUserService
     Task<PromoteResult> DemoteUserAsync(Guid userId);
     Task<bool> DeleteUserAsync(Guid userId);
     Task SetDarkModeAsync(Guid userId, bool isDarkMode);
+    Task SetFavoriteCampaignAsync(Guid userId, Guid? campaignId);
+    Task<(Guid Id, string Title)?> GetFavoriteCampaignAsync(Guid userId);
 }

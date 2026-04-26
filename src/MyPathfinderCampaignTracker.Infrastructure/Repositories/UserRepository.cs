@@ -50,4 +50,20 @@ public class UserRepository(AppDbContext dbContext) : IUserRepository
         await dbContext.SaveChangesAsync();
         return true;
     }
+
+    public async Task SetFavoriteCampaignAsync(Guid userId, Guid? campaignId) =>
+        await dbContext.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.FavoriteCampaignId, campaignId));
+
+    public async Task<(Guid Id, string Title)?> GetFavoriteCampaignAsync(Guid userId)
+    {
+        var user = await dbContext.Users.FindAsync(userId);
+        if (user?.FavoriteCampaignId is null) return null;
+
+        var campaign = await dbContext.Campaigns.FindAsync(user.FavoriteCampaignId);
+        if (campaign is null) return null;
+
+        return (campaign.Id, campaign.Title);
+    }
 }

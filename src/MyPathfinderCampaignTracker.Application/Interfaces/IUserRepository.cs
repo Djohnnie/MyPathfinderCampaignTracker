@@ -11,4 +11,6 @@ public interface IUserRepository
     Task AddAsync(User user);
     Task UpdateAsync(User user);
     Task<bool> DeleteAsync(Guid id);
+    Task SetFavoriteCampaignAsync(Guid userId, Guid? campaignId);
+    Task<(Guid Id, string Title)?> GetFavoriteCampaignAsync(Guid userId);
 }

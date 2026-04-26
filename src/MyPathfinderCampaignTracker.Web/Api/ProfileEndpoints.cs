@@ -19,8 +19,30 @@ public static class ProfileEndpoints
             return Results.Ok();
         }).RequireAuthorization("ApiAuth");
 
+        group.MapGet("/favorite-campaign", async (ClaimsPrincipal user, IUserService userService) =>
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
+            var favorite = await userService.GetFavoriteCampaignAsync(userId);
+            return Results.Ok(new FavoriteCampaignResponse(favorite?.Id, favorite?.Title));
+        }).RequireAuthorization("ApiAuth");
+
+        group.MapPut("/favorite-campaign", async (SetFavoriteCampaignRequest request, ClaimsPrincipal user, IUserService userService) =>
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
+            await userService.SetFavoriteCampaignAsync(userId, request.CampaignId);
+            return Results.Ok();
+        }).RequireAuthorization("ApiAuth");
+
         return routes;
     }
 
     private record SetDarkModeRequest(bool IsDarkMode);
+    private record SetFavoriteCampaignRequest(Guid? CampaignId);
+    private record FavoriteCampaignResponse(Guid? Id, string? Title);
 }

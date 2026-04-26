@@ -188,6 +188,16 @@ h1:focus {
         opacity: 0.4;
     }
 
+/* The drawer is always dark — force gold so crimson is not used in light mode */
+.mud-drawer .fantasy-divider {
+    color: #D4AF37;
+}
+
+.mud-drawer .fantasy-divider::before,
+.mud-drawer .fantasy-divider::after {
+    background: #D4AF37;
+}
+
 /* ===== PAGE HEADER ACCENT LINE ===== */
 
 .pf-section-title {

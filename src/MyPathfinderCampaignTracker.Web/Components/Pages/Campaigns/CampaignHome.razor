@@ -6,6 +6,7 @@
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject FavoriteCampaignState FavoriteCampaignState
 <PageTitle>@(_campaign?.Title ?? "Campagne") — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
@@ -30,6 +31,11 @@ else
         {
             <MudChip T="string" Color="Color.Success" Size="Size.Small">Actief</MudChip>
         }
+        <MudTooltip Text="@(_favoriteCampaignId == _campaign.Id ? "Verwijder favoriet" : "Markeer als favoriet")">
+            <MudIconButton Icon="@(_favoriteCampaignId == _campaign.Id ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                           Color="@(_favoriteCampaignId == _campaign.Id ? Color.Error : Color.Default)"
+                           OnClick="ToggleFavoriteAsync" />
+        </MudTooltip>
     </div>
 
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="@(_isEditingDescription ? "mb-2" : "mb-6")">
@@ -305,6 +311,7 @@ else
     private Guid _currentUserId;
     private bool _isAdmin;
     private bool _isPlayerOrAdmin;
+    private Guid? _favoriteCampaignId;
 
     // Description editing
     private bool _isEditingDescription;
@@ -323,7 +330,26 @@ else
             _nextSession = await ApiClient.GetNextGameSessionAsync(Id);
 
         _isPlayerOrAdmin = _isAdmin || (_campaign?.Players.Any(p => p.Id == _currentUserId) ?? false);
+
+        if (!FavoriteCampaignState.IsLoaded)
+        {
+            var fav = await ApiClient.GetFavoriteCampaignAsync();
+            FavoriteCampaignState.Set(fav?.Id, fav?.Title);
+        }
+
+        _favoriteCampaignId = FavoriteCampaignState.CampaignId;
         _loading = false;
+    }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        if (_campaign is null) return;
+        Guid? newId = _favoriteCampaignId == _campaign.Id ? null : _campaign.Id;
+        string? newTitle = newId.HasValue ? _campaign.Title : null;
+
+        await ApiClient.SetFavoriteCampaignAsync(newId);
+        _favoriteCampaignId = newId;
+        FavoriteCampaignState.Set(newId, newTitle);
     }
 
     private void StartEditDescription()

@@ -1,9 +1,36 @@
-﻿<MudNavMenu Class="mt-2">
+﻿@inject ApiClient ApiClient
+@inject FavoriteCampaignState FavoriteCampaignState
+@implements IDisposable
+
+<MudNavMenu Class="mt-2">
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">
                 Dashboard
             </MudNavLink>
+
+            @if (FavoriteCampaignState.CampaignId.HasValue)
+            {
+                <div class="fantasy-divider mx-3 mt-3">@FavoriteCampaignState.CampaignTitle</div>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/characters")" Icon="@Icons.Material.Filled.Shield">
+                    Personages
+                </MudNavLink>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/recaps")" Icon="@Icons.Material.Filled.MenuBook">
+                    Terugblikken
+                </MudNavLink>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/chat")" Icon="@Icons.Material.Filled.Chat">
+                    Chat
+                </MudNavLink>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/sessions")" Icon="@Icons.Material.Filled.CalendarMonth">
+                    Sessies
+                </MudNavLink>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/notes")" Icon="@Icons.Material.Filled.StickyNote2">
+                    Notities
+                </MudNavLink>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/loreacle")" Icon="@Icons.Material.Filled.AutoAwesome">
+                    Loreacle
+                </MudNavLink>
+            }
 
             <div class="fantasy-divider mx-3 mt-3">Mijn Overzicht</div>
             <MudNavLink Href="/my/campaigns" Icon="@Icons.Material.Filled.Map">
@@ -35,3 +62,17 @@
     </AuthorizeView>
 </MudNavMenu>
 
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        FavoriteCampaignState.OnChange += StateHasChanged;
+
+        if (!FavoriteCampaignState.IsLoaded)
+        {
+            var fav = await ApiClient.GetFavoriteCampaignAsync();
+            FavoriteCampaignState.Set(fav?.Id, fav?.Title);
+        }
+    }
+
+    public void Dispose() => FavoriteCampaignState.OnChange -= StateHasChanged;
+}

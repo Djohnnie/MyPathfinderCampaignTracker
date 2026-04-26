@@ -94,6 +94,12 @@ public class UserService(
         await userRepository.UpdateAsync(user);
     }
 
+    public async Task SetFavoriteCampaignAsync(Guid userId, Guid? campaignId) =>
+        await userRepository.SetFavoriteCampaignAsync(userId, campaignId);
+
+    public async Task<(Guid Id, string Title)?> GetFavoriteCampaignAsync(Guid userId) =>
+        await userRepository.GetFavoriteCampaignAsync(userId);
+
     private static UserDto MapToDto(User user) => new()
     {
         Id = user.Id,
