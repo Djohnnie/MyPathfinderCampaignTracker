@@ -159,6 +159,45 @@ else
                 <MudSwitch @bind-Value="_form.KilledInAction" Label="Gedood in actie (KIA)"
                            Color="Color.Error" Class="mt-1" />
             </MudItem>
+
+            <MudItem xs="12">
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">Verhaal &amp; Persoonlijkheid (optioneel)</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_form.Alignment" Label="Gezindheid" Variant="Variant.Outlined"
+                           Clearable="true" T="string">
+                    <MudSelectItem T="string" Value="@("Wettig Goed")">Wettig Goed</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Neutraal Goed")">Neutraal Goed</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Chaotisch Goed")">Chaotisch Goed</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Wettig Neutraal")">Wettig Neutraal</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Waar Neutraal")">Waar Neutraal</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Chaotisch Neutraal")">Chaotisch Neutraal</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Wettig Kwaad")">Wettig Kwaad</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Neutraal Kwaad")">Neutraal Kwaad</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Chaotisch Kwaad")">Chaotisch Kwaad</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Languages" Label="Talen" Variant="Variant.Outlined"
+                              MaxLength="200" Placeholder="bv. Gemeen, Elfs, Dwergisch" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Appearance" Label="Uiterlijk" Variant="Variant.Outlined"
+                              Lines="2" MaxLength="500" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Personality" Label="Persoonlijkheid" Variant="Variant.Outlined"
+                              Lines="2" MaxLength="500" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.IdealsAndGoals" Label="Idealen &amp; Doelen" Variant="Variant.Outlined"
+                              Lines="2" MaxLength="500" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Flaws" Label="Tekortkomingen" Variant="Variant.Outlined"
+                              Lines="2" MaxLength="500" />
+            </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
@@ -257,7 +296,13 @@ else
             Intelligence = character.Intelligence,
             Wisdom = character.Wisdom,
             Charisma = character.Charisma,
-            KilledInAction = character.KilledInAction
+            KilledInAction = character.KilledInAction,
+            Alignment = character.Alignment,
+            Personality = character.Personality,
+            IdealsAndGoals = character.IdealsAndGoals,
+            Flaws = character.Flaws,
+            Languages = character.Languages,
+            Appearance = character.Appearance
         };
         _dialogOpen = true;
     }
@@ -289,7 +334,13 @@ else
                 _form.Intelligence,
                 _form.Wisdom,
                 _form.Charisma,
-                _form.KilledInAction);
+                _form.KilledInAction,
+                string.IsNullOrWhiteSpace(_form.Alignment) ? null : _form.Alignment.Trim(),
+                string.IsNullOrWhiteSpace(_form.Personality) ? null : _form.Personality.Trim(),
+                string.IsNullOrWhiteSpace(_form.IdealsAndGoals) ? null : _form.IdealsAndGoals.Trim(),
+                string.IsNullOrWhiteSpace(_form.Flaws) ? null : _form.Flaws.Trim(),
+                string.IsNullOrWhiteSpace(_form.Languages) ? null : _form.Languages.Trim(),
+                string.IsNullOrWhiteSpace(_form.Appearance) ? null : _form.Appearance.Trim());
 
             var ok = await ApiClient.UpdateCharacterAsync(_editingId.Value, request);
             Snackbar.Add(ok ? "Personage bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
@@ -373,6 +424,12 @@ else
         public int Wisdom { get; set; } = 10;
         public int Charisma { get; set; } = 10;
         public bool KilledInAction { get; set; }
+        public string? Alignment { get; set; }
+        public string? Personality { get; set; }
+        public string? IdealsAndGoals { get; set; }
+        public string? Flaws { get; set; }
+        public string? Languages { get; set; }
+        public string? Appearance { get; set; }
     }
 
     private record CharacterGroup

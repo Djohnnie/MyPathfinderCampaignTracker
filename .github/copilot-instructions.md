@@ -215,6 +215,12 @@ public class Character
     public int Wisdom { get; set; }
     public int Charisma { get; set; }
     public bool KilledInAction { get; set; }
+    public string? Alignment { get; set; }           // optional, e.g. "Wettig Goed"
+    public string? Personality { get; set; }          // optional character traits/mannerisms
+    public string? IdealsAndGoals { get; set; }       // optional motivations and goals
+    public string? Flaws { get; set; }                // optional flaws and weaknesses
+    public string? Languages { get; set; }            // optional, comma-separated languages
+    public string? Appearance { get; set; }           // optional physical description
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -19,6 +19,12 @@ public class CharacterDto
     public int Wisdom { get; set; }
     public int Charisma { get; set; }
     public bool KilledInAction { get; set; }
+    public string? Alignment { get; set; }
+    public string? Personality { get; set; }
+    public string? IdealsAndGoals { get; set; }
+    public string? Flaws { get; set; }
+    public string? Languages { get; set; }
+    public string? Appearance { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -35,4 +41,10 @@ public record CharacterRequest(
     int Intelligence,
     int Wisdom,
     int Charisma,
-    bool KilledInAction);
+    bool KilledInAction,
+    string? Alignment = null,
+    string? Personality = null,
+    string? IdealsAndGoals = null,
+    string? Flaws = null,
+    string? Languages = null,
+    string? Appearance = null);

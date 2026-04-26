@@ -44,6 +44,12 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
             Wisdom = request.Wisdom,
             Charisma = request.Charisma,
             KilledInAction = request.KilledInAction,
+            Alignment = request.Alignment,
+            Personality = request.Personality,
+            IdealsAndGoals = request.IdealsAndGoals,
+            Flaws = request.Flaws,
+            Languages = request.Languages,
+            Appearance = request.Appearance,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -69,6 +75,12 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
         character.Wisdom = request.Wisdom;
         character.Charisma = request.Charisma;
         character.KilledInAction = request.KilledInAction;
+        character.Alignment = request.Alignment;
+        character.Personality = request.Personality;
+        character.IdealsAndGoals = request.IdealsAndGoals;
+        character.Flaws = request.Flaws;
+        character.Languages = request.Languages;
+        character.Appearance = request.Appearance;
         character.UpdatedAt = DateTime.UtcNow;
 
         await characterRepository.UpdateAsync(character);
@@ -103,6 +115,12 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
         Wisdom = c.Wisdom,
         Charisma = c.Charisma,
         KilledInAction = c.KilledInAction,
+        Alignment = c.Alignment,
+        Personality = c.Personality,
+        IdealsAndGoals = c.IdealsAndGoals,
+        Flaws = c.Flaws,
+        Languages = c.Languages,
+        Appearance = c.Appearance,
         CreatedAt = c.CreatedAt,
         UpdatedAt = c.UpdatedAt
     };

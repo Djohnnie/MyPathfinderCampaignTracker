@@ -70,7 +70,15 @@ public static class LoreacleEndpoints
                                      $"INT {c.Intelligence} ({ModStr(c.Intelligence)}), " +
                                      $"WIS {c.Wisdom} ({ModStr(c.Wisdom)}), " +
                                      $"CHA {c.Charisma} ({ModStr(c.Charisma)})";
-                        return $"{c.Name} ({c.Race} {c.CharacterClass}, Level {c.Level}){kia} — {scores}";
+                        var storyParts = new List<string>();
+                        if (!string.IsNullOrWhiteSpace(c.Alignment)) storyParts.Add($"Gezindheid: {c.Alignment}");
+                        if (!string.IsNullOrWhiteSpace(c.Languages)) storyParts.Add($"Talen: {c.Languages}");
+                        if (!string.IsNullOrWhiteSpace(c.Appearance)) storyParts.Add($"Uiterlijk: {c.Appearance}");
+                        if (!string.IsNullOrWhiteSpace(c.Personality)) storyParts.Add($"Persoonlijkheid: {c.Personality}");
+                        if (!string.IsNullOrWhiteSpace(c.IdealsAndGoals)) storyParts.Add($"Idealen/doelen: {c.IdealsAndGoals}");
+                        if (!string.IsNullOrWhiteSpace(c.Flaws)) storyParts.Add($"Tekortkomingen: {c.Flaws}");
+                        var storySuffix = storyParts.Count > 0 ? "\n    " + string.Join(" | ", storyParts) : "";
+                        return $"{c.Name} ({c.Race} {c.CharacterClass}, Level {c.Level}){kia} — {scores}{storySuffix}";
                     })
                     .ToList();
 
