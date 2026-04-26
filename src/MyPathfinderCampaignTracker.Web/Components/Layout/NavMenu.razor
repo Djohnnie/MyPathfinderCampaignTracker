@@ -1,5 +1,6 @@
 ﻿@inject ApiClient ApiClient
 @inject FavoriteCampaignState FavoriteCampaignState
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
 <MudNavMenu Class="mt-2">
@@ -67,7 +68,8 @@
     {
         FavoriteCampaignState.OnChange += StateHasChanged;
 
-        if (!FavoriteCampaignState.IsLoaded)
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true && !FavoriteCampaignState.IsLoaded)
         {
             var fav = await ApiClient.GetFavoriteCampaignAsync();
             FavoriteCampaignState.Set(fav?.Id, fav?.Title);

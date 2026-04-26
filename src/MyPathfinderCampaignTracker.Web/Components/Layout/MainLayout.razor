@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject ApiClient ApiClient
+@inject AuthStateMonitor AuthStateMonitor
 
 <MudThemeProvider @ref="_themeProvider" Theme="_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -155,6 +157,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthStateMonitor.OnStaleToken += HandleStaleToken;
+
         var authState = await AuthState;
         _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
         if (_isAuthenticated)
@@ -163,6 +167,22 @@
             _isDarkMode = claim == "true";
             _darkModeInitialized = true;
         }
+    }
+
+    /// <summary>
+    /// Called when <see cref="ApiClient"/> detects a stale JWT (valid cookie, rejected token).
+    /// Navigation is only performed in interactive mode; during SSR pre-render
+    /// <c>RendererInfo.IsInteractive</c> is false and the call is a no-op.
+    /// </summary>
+    private void HandleStaleToken()
+    {
+        if (RendererInfo.IsInteractive)
+            Navigation.NavigateTo("/api/auth/signout", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        AuthStateMonitor.OnStaleToken -= HandleStaleToken;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -27,9 +27,14 @@ builder.Services.AddSignalR(options =>
 });
 
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+    ?? throw new InvalidOperationException("The JWT_SECRET environment variable must be set.");
+builder.Configuration["Jwt:Secret"] = jwtSecret;
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
@@ -81,6 +86,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 });
 
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<AuthStateMonitor>();
 builder.Services.AddScoped<FavoriteCampaignState>();
 builder.Services.AddSingleton<LoginTicketService>();
 
