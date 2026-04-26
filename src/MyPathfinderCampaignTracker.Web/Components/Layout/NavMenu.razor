@@ -14,10 +14,10 @@
             {
                 <div class="fantasy-divider mx-3 mt-3">@FavoriteCampaignState.CampaignTitle</div>
                 <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/characters")" Icon="@Icons.Material.Filled.Shield">
-                    Personages
+                    Karakters
                 </MudNavLink>
                 <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/recaps")" Icon="@Icons.Material.Filled.MenuBook">
-                    Terugblikken
+                    Recaps
                 </MudNavLink>
                 <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/chat")" Icon="@Icons.Material.Filled.Chat">
                     Chat
@@ -38,10 +38,10 @@
                 Mijn campagnes
             </MudNavLink>
             <MudNavLink Href="/my/characters" Icon="@Icons.Material.Filled.Shield">
-                Mijn personages
+                Mijn karakters
             </MudNavLink>
             <MudNavLink Href="/my/recaps" Icon="@Icons.Material.Filled.MenuBook">
-                Mijn terugblikken
+                Mijn recaps
             </MudNavLink>
 
             <AuthorizeView Roles="Admin" Context="adminCtx">

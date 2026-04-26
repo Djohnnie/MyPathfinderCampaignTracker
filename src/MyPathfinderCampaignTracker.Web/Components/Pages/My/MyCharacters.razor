@@ -5,7 +5,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<PageTitle>Mijn Personages — Pathfinder Campaign Tracker</PageTitle>
+<PageTitle>Mijn Karakters — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
 {
@@ -13,9 +13,9 @@
 }
 else
 {
-    <MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Mijn Personages</MudText>
+    <MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Mijn Karakters</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Uw personages gegroepeerd per campagne — levenden eerst, gevallenen als laatste.
+        Uw karakters gegroepeerd per campagne — levenden eerst, gevallenen als laatste.
     </MudText>
 
     @if (_groups.Count == 0)
@@ -23,8 +23,8 @@ else
         <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
                   Style="border: 1px dashed var(--mud-palette-lines-default);">
             <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">U heeft nog geen personages</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Ga naar een campagne om uw eerste personage aan te maken.</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Secondary">U heeft nog geen Karakters</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Ga naar een campagne om uw eerste Karakter aan te maken.</MudText>
         </MudPaper>
     }
     else
@@ -134,7 +134,7 @@ else
 @* --- Delete Confirm Dialog --- *@
 <MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">Personage verwijderen</MudText>
+        <MudText Typo="Typo.h6">Karakter verwijderen</MudText>
     </TitleContent>
     <DialogContent>
         <MudText>Weet u zeker dat u <strong>@_deletingCharacter?.Name</strong> wilt verwijderen?</MudText>
@@ -276,7 +276,7 @@ else
             var ok = await ApiClient.UpdateCharacterAsync(_editingId.Value, request);
             if (ok && _selectedPhoto is not null)
                 await ApiClient.UploadCharacterPhotoAsync(_editingId.Value, _selectedPhoto);
-            Snackbar.Add(ok ? "Personage bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
+            Snackbar.Add(ok ? "Karakter bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
 
             _dialogOpen = false;
             await LoadCharactersAsync();
@@ -301,7 +301,7 @@ else
         {
             var ok = await ApiClient.DeleteCharacterAsync(_deletingCharacter.Id);
             _deleteDialogOpen = false;
-            Snackbar.Add(ok ? "Personage verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
+            Snackbar.Add(ok ? "Karakter verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
             if (ok) await LoadCharactersAsync();
         }
         finally

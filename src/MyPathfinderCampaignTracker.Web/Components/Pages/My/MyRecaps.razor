@@ -5,7 +5,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<PageTitle>Mijn Terugblikken — Pathfinder Campaign Tracker</PageTitle>
+<PageTitle>Mijn Recaps — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
 {
@@ -13,9 +13,9 @@
 }
 else
 {
-    <MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Mijn Terugblikken</MudText>
+    <MudText Typo="Typo.h4" Class="mb-1 pf-section-title">Mijn Recaps</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Terugblikken die u heeft geschreven, van meest recent naar minst recent.
+        Recaps die u heeft geschreven, van meest recent naar minst recent.
     </MudText>
 
     @if (_recaps.Count == 0)
@@ -23,8 +23,8 @@ else
         <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
                   Style="border: 1px dashed var(--mud-palette-lines-default);">
             <MudIcon Icon="@Icons.Material.Filled.MenuBook" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">U heeft nog geen terugblikken geschreven</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Ga naar een campagne om uw eerste terugblik toe te voegen.</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Secondary">U heeft nog geen Recaps geschreven</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Ga naar een campagne om uw eerste Recap toe te voegen.</MudText>
         </MudPaper>
     }
     else
@@ -38,7 +38,7 @@ else
                             <div class="d-flex align-center flex-wrap" style="gap: 10px; min-width: 0;">
                                 <MudChip T="string" Color="Color.Primary" Size="Size.Small"
                                          Variant="Variant.Filled" Style="font-weight: 700;">
-                                    Terugblik @recap.Number
+                                    Recap @recap.Number
                                 </MudChip>
                                 <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">@recap.Title</MudText>
                             </div>
@@ -57,7 +57,7 @@ else
                                         @recap.Date.ToString("d MMMM yyyy")
                                     </MudText>
                                 </div>
-                                <MudTooltip Text="Bekijk terugblikken van deze campagne">
+                                <MudTooltip Text="Bekijk Recaps van deze campagne">
                                     <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
                                                    Color="Color.Primary" Size="Size.Small"
                                                    OnClick="@(() => Navigation.NavigateTo($"/campaigns/{recap.CampaignId}/recaps"))" />
@@ -88,7 +88,7 @@ else
 @* --- Edit Dialog --- *@
 <MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">Terugblik @_editingNumber bewerken</MudText>
+        <MudText Typo="Typo.h6">Recap @_editingNumber bewerken</MudText>
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="2">
@@ -148,11 +148,11 @@ else
 @* --- Delete Confirm Dialog --- *@
 <MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">Terugblik verwijderen</MudText>
+        <MudText Typo="Typo.h6">Recap verwijderen</MudText>
     </TitleContent>
     <DialogContent>
         <MudText>
-            Weet u zeker dat u <strong>Terugblik @_deletingRecap?.Number — @_deletingRecap?.Title</strong> wilt verwijderen?
+            Weet u zeker dat u <strong>Recap @_deletingRecap?.Number — @_deletingRecap?.Title</strong> wilt verwijderen?
         </MudText>
     </DialogContent>
     <DialogActions>
@@ -286,7 +286,7 @@ else
                 _form.Contents.Trim());
 
             var ok = await ApiClient.UpdateRecapAsync(_editingId.Value, request);
-            Snackbar.Add(ok ? "Terugblik bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
+            Snackbar.Add(ok ? "Recap bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
 
             _dialogOpen = false;
             _recaps = await ApiClient.GetMyRecapsAsync();
@@ -311,7 +311,7 @@ else
         {
             var ok = await ApiClient.DeleteRecapAsync(_deletingRecap.Id);
             _deleteDialogOpen = false;
-            Snackbar.Add(ok ? "Terugblik verwijderd." : "Verwijderen mislukt.",
+            Snackbar.Add(ok ? "Recap verwijderd." : "Verwijderen mislukt.",
                 ok ? Severity.Success : Severity.Error);
             if (ok) _recaps = await ApiClient.GetMyRecapsAsync();
         }

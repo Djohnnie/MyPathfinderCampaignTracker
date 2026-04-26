@@ -2,12 +2,12 @@
 
 <MudDialog Visible="IsOpen" VisibleChanged="OnVisibleChanged" Options="_dialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">@(EditingId.HasValue ? "Personage bewerken" : "Nieuw personage")</MudText>
+        <MudText Typo="Typo.h6">@(EditingId.HasValue ? "Karakter bewerken" : "Nieuw Karakter")</MudText>
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="2">
             <MudItem xs="12">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Personagefoto (optioneel)</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Karakterfoto (optioneel)</MudText>
                 <div class="d-flex align-center" style="gap: 16px; flex-wrap: wrap;">
                     @if (SelectedPhoto is not null)
                     {

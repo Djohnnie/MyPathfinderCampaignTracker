@@ -6,7 +6,7 @@
 @inject NavigationManager Navigation
 @using System.Security.Claims
 
-<PageTitle>Personages — Pathfinder Campaign Tracker</PageTitle>
+<PageTitle>Karakters — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
 {
@@ -18,7 +18,7 @@ else
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
                        OnClick="@(() => Navigation.NavigateTo($"/campaigns/{CampaignId}"))" />
         <div>
-            <MudText Typo="Typo.h4" Style="font-weight: 700;">Personages</MudText>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Karakters</MudText>
             @if (_campaignTitle is not null)
             {
                 <MudText Typo="Typo.body2" Color="Color.Secondary">@_campaignTitle</MudText>
@@ -29,7 +29,7 @@ else
     <div class="d-flex justify-end mb-4">
         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
                    OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
-            Nieuw personage
+            Nieuw Karakter
         </MudButton>
     </div>
 
@@ -38,8 +38,8 @@ else
         <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center"
                   Style="border: 1px dashed var(--mud-palette-lines-default);">
             <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">Nog geen personages</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Klik op "Nieuw personage" om te beginnen.</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Secondary">Nog geen Karakters</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Klik op "Nieuw Karakter" om te beginnen.</MudText>
         </MudPaper>
     }
     else
@@ -156,7 +156,7 @@ else
 @* ─── Delete Confirm Dialog ─── *@
 <MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">Personage verwijderen</MudText>
+        <MudText Typo="Typo.h6">Karakter verwijderen</MudText>
     </TitleContent>
     <DialogContent>
         <MudText>Weet u zeker dat u <strong>@_deletingCharacter?.Name</strong> wilt verwijderen?</MudText>
@@ -319,14 +319,14 @@ else
                 var ok = await ApiClient.UpdateCharacterAsync(_editingId.Value, request);
                 if (ok && _selectedPhoto is not null)
                     await ApiClient.UploadCharacterPhotoAsync(_editingId.Value, _selectedPhoto);
-                Snackbar.Add(ok ? "Personage bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
+                Snackbar.Add(ok ? "Karakter bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
             }
             else
             {
                 var created = await ApiClient.CreateCharacterAsync(CampaignId, request);
                 if (created is not null && _selectedPhoto is not null)
                     await ApiClient.UploadCharacterPhotoAsync(created.Id, _selectedPhoto);
-                Snackbar.Add(created is not null ? "Personage aangemaakt." : "Aanmaken mislukt.",
+                Snackbar.Add(created is not null ? "Karakter aangemaakt." : "Aanmaken mislukt.",
                     created is not null ? Severity.Success : Severity.Error);
             }
 
@@ -353,7 +353,7 @@ else
         {
             var ok = await ApiClient.DeleteCharacterAsync(_deletingCharacter.Id);
             _deleteDialogOpen = false;
-            Snackbar.Add(ok ? "Personage verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
+            Snackbar.Add(ok ? "Karakter verwijderd." : "Verwijderen mislukt.", ok ? Severity.Success : Severity.Error);
             if (ok) await LoadCharactersAsync();
         }
         finally
