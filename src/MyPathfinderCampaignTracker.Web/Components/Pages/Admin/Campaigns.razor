@@ -47,12 +47,6 @@ else
                 <MudLink Href="@($"/campaigns/{context.Id}")" Typo="Typo.body1" Style="font-weight: 600;">
                     @context.Title
                 </MudLink>
-                @if (!string.IsNullOrWhiteSpace(context.Description))
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @(context.Description.Length > 60 ? context.Description[..60] + "…" : context.Description)
-                    </MudText>
-                }
             </MudTd>
             <MudTd>@context.StartDate.ToString("dd-MM-yyyy")</MudTd>
             <MudTd>@(context.EndDate?.ToString("dd-MM-yyyy") ?? "—")</MudTd>

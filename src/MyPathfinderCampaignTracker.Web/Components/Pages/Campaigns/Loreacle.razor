@@ -65,21 +65,23 @@
     </div>
 
     <div class="loreacle-page-input">
-        <MudStack Row AlignItems="AlignItems.Center" Spacing="1" Class="pa-3">
+        <div class="d-flex align-center" style="gap: 8px; padding: 8px 0 12px;">
             <MudTextField @bind-Value="_input"
                           @onkeydown="OnKeyDown"
                           Placeholder="Vraag de Loreacle..."
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
-                          Class="flex-grow-1"
+                          Class="flex-1"
+                          Style="margin-bottom: 0;"
                           Immediate="true"
-                          Lines="1"
                           Disabled="_isThinking" />
             <MudIconButton Icon="@Icons.Material.Filled.Send"
                            Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           Size="Size.Medium"
                            OnClick="SendAsync"
                            Disabled="@(string.IsNullOrWhiteSpace(_input) || _isThinking)" />
-        </MudStack>
+        </div>
     </div>
 
 </div>

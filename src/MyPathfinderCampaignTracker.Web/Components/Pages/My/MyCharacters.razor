@@ -49,9 +49,9 @@ else
                 <MudGrid Spacing="3">
                     @foreach (var character in group.Characters)
                     {
-                        <MudItem xs="12" md="6" xl="4">
+                        <MudItem xs="12" md="6" xl="4" Style="display: flex;">
                             <MudPaper Elevation="0" Class="@GetCharacterCardClass(character)"
-                                      Style="@(character.KilledInAction ? "border: 1px solid var(--mud-palette-lines-default); opacity: 0.75;" : "")">
+                                      Style="@(character.KilledInAction ? "border: 1px solid var(--mud-palette-lines-default); opacity: 0.75; width: 100%; display: flex; flex-direction: column;" : "width: 100%; display: flex; flex-direction: column;")">
                                 <div class="d-flex align-center justify-space-between mb-2">
                                     <div class="d-flex align-center" style="gap: 10px;">
                                         @if (_photoCache.TryGetValue(character.Id, out var avatarSrc) && avatarSrc is not null)

@@ -47,8 +47,8 @@ else
         <MudGrid Spacing="3">
             @foreach (var character in _characters)
             {
-                <MudItem xs="12" md="6" xl="4">
-                    <MudPaper Elevation="0" Class="pa-4 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudItem xs="12" md="6" xl="4" Style="display: flex;">
+                    <MudPaper Elevation="0" Class="pa-4 card-hover" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%; display: flex; flex-direction: column;">
         @* Header *@
                         <div class="d-flex align-center justify-space-between mb-3">
                             <div class="d-flex align-center" style="gap: 12px;">

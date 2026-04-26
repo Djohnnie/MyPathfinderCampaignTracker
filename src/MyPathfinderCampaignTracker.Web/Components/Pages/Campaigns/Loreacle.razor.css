@@ -12,15 +12,5 @@
     bottom: 0;
     background-color: var(--mud-palette-background);
     z-index: 10;
-    border-top: 2px solid #8B1A1A;
-    box-shadow: 0 -4px 16px rgba(139, 26, 26, 0.15), 0 -1px 0 #D4AF37;
-    padding-top: 2px;
-}
-
-.loreacle-page-input::before {
-    content: '';
-    display: block;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #D4AF37 20%, #8B1A1A 50%, #D4AF37 80%, transparent);
-    margin-bottom: 0;
+    border-top: 1px solid var(--mud-palette-divider);
 }

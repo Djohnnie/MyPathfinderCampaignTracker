@@ -34,7 +34,7 @@ else
     {
         <div class="d-flex flex-column align-center justify-center my-8">
             <MudIcon Icon="@Icons.Material.Filled.Forum" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
-            <MudText Typo="Typo.body1" Color="Color.Secondary">No messages yet. Start the conversation!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Nog geen berichten. Begin het gesprek!</MudText>
         </div>
     }
     else
@@ -54,7 +54,7 @@ else
                     {
                         <MudAvatar Color="Color.Secondary" Size="Size.Small">@initials</MudAvatar>
                     }
-                    <MudXChatHeader Name="@(isOwn ? "You" : msg.Username.CapFirst())"
+                    <MudXChatHeader Name="@(isOwn ? "Jij" : msg.Username.CapFirst())"
                                     Time="@FormatTime(msg.SentAt)" />
                     <MudXChatBubble>@msg.Content</MudXChatBubble>
                 </MudXChat>
@@ -70,7 +70,7 @@ else
         <div class="d-flex align-center" style="gap: 8px;">
             <MudTextField @bind-Value="_newMessage"
                           @onkeydown="HandleKeyDown"
-                          Placeholder="Type a message and press Enter to send..."
+                          Placeholder="Typ een bericht en druk op Enter om te verzenden..."
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
                           Class="flex-1"
@@ -190,7 +190,7 @@ else
         var local = sentAt.ToLocalTime();
         var now = DateTime.Now;
         if (local.Date == now.Date) return local.ToString("HH:mm");
-        if (local.Date == now.Date.AddDays(-1)) return $"yesterday {local:HH:mm}";
+        if (local.Date == now.Date.AddDays(-1)) return $"gisteren {local:HH:mm}";
         return local.ToString("d MMM HH:mm");
     }
 
