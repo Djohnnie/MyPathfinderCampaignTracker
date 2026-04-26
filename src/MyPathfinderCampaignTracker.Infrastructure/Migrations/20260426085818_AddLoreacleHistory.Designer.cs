@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyPathfinderCampaignTracker.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using MyPathfinderCampaignTracker.Infrastructure.Data;
 namespace MyPathfinderCampaignTracker.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426085818_AddLoreacleHistory")]
+    partial class AddLoreacleHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,12 +250,6 @@ namespace MyPathfinderCampaignTracker.Infrastructure.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsCompacted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsCompaction")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsUser")
                         .HasColumnType("bit");

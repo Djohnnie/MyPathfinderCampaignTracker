@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using System.Security.Claims
+@using System.Runtime.InteropServices
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -107,11 +108,11 @@ else
                 {
                     <MudText Typo="Typo.caption" Color="Color.Secondary">Volgende sessie</MudText>
                     <MudText Typo="Typo.body1" Style="font-weight: 600;">
-                        @_nextSession.ScheduledAt.ToLocalTime().ToString("d MMMM yyyy")
+                        @ToBrussels(_nextSession.ScheduledAt).ToString("d MMMM yyyy")
                     </MudText>
                     <MudTooltip Text="@_nextSession.Location" Placement="Placement.Bottom">
                         <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight: 600; cursor: default;">
-                            @_nextSession.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                            @ToBrussels(_nextSession.ScheduledAt).ToString("HH:mm") uur
                         </MudText>
                     </MudTooltip>
                 }
@@ -288,6 +289,12 @@ else
 }
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     [Parameter] public Guid Id { get; set; }
     [CascadingParameter] private Task<AuthenticationState>? AuthTask { get; set; }
 

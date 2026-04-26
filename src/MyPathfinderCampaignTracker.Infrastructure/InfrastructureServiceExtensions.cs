@@ -32,6 +32,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         services.AddScoped<ICampaignNoteRepository, CampaignNoteRepository>();
+        services.AddScoped<ILoreacleHistoryRepository, LoreacleHistoryRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
 

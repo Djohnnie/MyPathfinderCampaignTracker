@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<GameSession> GameSessions => Set<GameSession>();
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
+    public DbSet<LoreacleMessage> LoreacleMessages => Set<LoreacleMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,6 +121,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(n => new { n.CampaignId, n.CreatedAt });
+        });
+
+        modelBuilder.Entity<LoreacleMessage>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Content).IsRequired();
+
+            entity.HasOne(m => m.Campaign)
+                  .WithMany()
+                  .HasForeignKey(m => m.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(m => new { m.CampaignId, m.SentAt });
         });
     }
 }

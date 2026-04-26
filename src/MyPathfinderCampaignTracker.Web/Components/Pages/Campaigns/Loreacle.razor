@@ -92,6 +92,12 @@
     private List<(bool IsUser, string Content)> _messages = [];
     private ElementReference _scrollAnchor;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var history = await ApiClient.GetLoreacleHistoryAsync(Id);
+        _messages = history.Select(m => (m.IsUser, m.Content)).ToList();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -117,13 +123,8 @@
 
         try
         {
-            var history = _messages
-                .Take(_messages.Count - 1)
-                .Select(m => new LoreacleMessageDto(m.IsUser, m.Content))
-                .ToList();
-
             var reply = await ApiClient.ChatWithLoreacleAsync(
-                Id, new LoreacleRequest(userMessage, history));
+                Id, new LoreacleRequest(userMessage));
 
             _messages.Add((false, reply ?? "De Loreacle antwoordt niet..."));
         }

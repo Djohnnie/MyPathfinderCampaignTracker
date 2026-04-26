@@ -62,10 +62,10 @@ else
                                 </div>
                             </div>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">
-                                @session.ScheduledAt.ToLocalTime().ToString("dddd d MMMM yyyy")
+                                @ToBrussels(session.ScheduledAt).ToString("dddd d MMMM yyyy")
                             </MudText>
                             <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: 600;">
-                                @session.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                                @ToBrussels(session.ScheduledAt).ToString("HH:mm") uur
                             </MudText>
                             <div class="d-flex align-center mt-2" style="gap: 6px;">
                                 <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
@@ -95,10 +95,10 @@ else
                                 </div>
                             </div>
                             <MudText Typo="Typo.body1" Style="font-weight: 600;">
-                                @session.ScheduledAt.ToLocalTime().ToString("dddd d MMMM yyyy")
+                                @ToBrussels(session.ScheduledAt).ToString("dddd d MMMM yyyy")
                             </MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                @session.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                                @ToBrussels(session.ScheduledAt).ToString("HH:mm") uur
                             </MudText>
                             <div class="d-flex align-center mt-1" style="gap: 6px;">
                                 <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
@@ -149,6 +149,12 @@ else
 </MudDialog>
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     [Parameter] public Guid Id { get; set; }
 
     private CampaignDto? _campaign;
@@ -196,8 +202,8 @@ else
     private void OpenEditDialog(GameSessionDto session)
     {
         _editingSession = session;
-        _selectedDate = session.ScheduledAt.ToLocalTime().Date;
-        _selectedTime = session.ScheduledAt.ToLocalTime().TimeOfDay;
+        _selectedDate = ToBrussels(session.ScheduledAt).Date;
+        _selectedTime = ToBrussels(session.ScheduledAt).TimeOfDay;
         _locationInput = session.Location;
         _dialogOpen = true;
     }

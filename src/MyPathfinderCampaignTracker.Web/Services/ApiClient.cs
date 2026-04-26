@@ -205,7 +205,15 @@ public class ApiClient(
         return result?.FormattedContents;
     }
 
-    public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)    {
+    public async Task<List<LoreacleMessageDto>> GetLoreacleHistoryAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<LoreacleMessageDto>>(
+            $"/api/campaigns/{campaignId}/loreacle/history") ?? [];
+    }
+
+    public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)
+    {
         var client = await CreateClientAsync();
         var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/loreacle", request);
         if (!response.IsSuccessStatusCode) return null;
