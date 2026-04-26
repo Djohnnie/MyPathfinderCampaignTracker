@@ -256,4 +256,32 @@ public class ApiClient(
         var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/sessions/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<List<CampaignNoteDto>> GetNotesAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<CampaignNoteDto>>($"/api/campaigns/{campaignId}/notes/") ?? [];
+    }
+
+    public async Task<CampaignNoteDto?> CreateNoteAsync(Guid campaignId, CampaignNoteRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/notes/", request);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<CampaignNoteDto>();
+    }
+
+    public async Task<bool> UpdateNoteAsync(Guid campaignId, Guid id, CampaignNoteRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/campaigns/{campaignId}/notes/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteNoteAsync(Guid campaignId, Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/notes/{id}");
+        return response.IsSuccessStatusCode;
+    }
 }

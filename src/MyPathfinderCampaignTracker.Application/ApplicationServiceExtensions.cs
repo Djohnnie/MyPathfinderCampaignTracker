@@ -14,6 +14,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IRecapService, RecapService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
         services.AddScoped<IGameSessionService, GameSessionService>();
+        services.AddScoped<ICampaignNoteService, CampaignNoteService>();
         return services;
     }
 }

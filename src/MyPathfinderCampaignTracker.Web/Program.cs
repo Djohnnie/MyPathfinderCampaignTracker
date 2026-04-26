@@ -114,6 +114,7 @@ app.MapRecapEndpoints();
 app.MapChatEndpoints();
 app.MapLoreacleEndpoints();
 app.MapGameSessionEndpoints();
+app.MapNoteEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

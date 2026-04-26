@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Recap> Recaps => Set<Recap>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<GameSession> GameSessions => Set<GameSession>();
+    public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +102,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(s => new { s.CampaignId, s.ScheduledAt });
+        });
+
+        modelBuilder.Entity<CampaignNote>(entity =>
+        {
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Content).IsRequired();
+
+            entity.HasOne(n => n.Campaign)
+                  .WithMany()
+                  .HasForeignKey(n => n.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(n => n.User)
+                  .WithMany()
+                  .HasForeignKey(n => n.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(n => new { n.CampaignId, n.CreatedAt });
         });
     }
 }

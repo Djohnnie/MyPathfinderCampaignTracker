@@ -1,0 +1,228 @@
+@page "/campaigns/{Id:guid}/notes"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Notities — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_campaign is null)
+{
+    <MudAlert Severity="Severity.Error">Campagne niet gevonden.</MudAlert>
+}
+else
+{
+    <div class="d-flex align-center mb-2" style="gap: 12px;">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo($"/campaigns/{Id}"))" />
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Notities — @_campaign.Title</MudText>
+    </div>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Het prikbord van de campagne. Iedereen kan een briefje prikken.
+    </MudText>
+
+    <div class="notice-board-frame">
+        <div class="board-nail board-nail-tl"></div>
+        <div class="board-nail board-nail-tr"></div>
+        <div class="board-nail board-nail-bl"></div>
+        <div class="board-nail board-nail-br"></div>
+        <div class="notice-board">
+            <div class="board-header-plaque">Berichten van het Avontuursgenootschap</div>
+            <MudGrid Spacing="4">
+            @* Add-note tile *@
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <div class="parchment-note-add" @onclick="OpenAddDialog">
+                    <MudIcon Icon="@Icons.Material.Filled.AddCircleOutline" Size="Size.Large" />
+                    <span style="font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:0.08em;">
+                        Briefje toevoegen
+                    </span>
+                </div>
+            </MudItem>
+
+            @for (int i = 0; i < _notes.Count; i++)
+            {
+                var note = _notes[i];
+                var colorClass = $"parchment-note-{i % 4}";
+                var rotateClass = $"note-rotate-{i % 4}";
+                var isOwn = note.UserId == _currentUserId || _isAdmin;
+
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <div class="parchment-note @colorClass @rotateClass">
+                        @if (isOwn)
+                        {
+                            <div class="parchment-note-actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Size="Size.Small" Color="Color.Default"
+                                               Style="background:rgba(255,255,255,0.6); width:26px; height:26px;"
+                                               OnClick="@(() => OpenEditDialog(note))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small" Color="Color.Error"
+                                               Style="background:rgba(255,255,255,0.6); width:26px; height:26px;"
+                                               OnClick="@(() => DeleteNote(note))" />
+                            </div>
+                        }
+                        <MudText Typo="Typo.body1" Style="font-size:1.05rem; line-height:1.55; white-space:pre-wrap; color:#2A1A06;">
+                            @note.Content
+                        </MudText>
+                        <div class="parchment-note-author">
+                            ✒ @note.AuthorUsername
+                            <span style="opacity:0.55; margin-left:6px; font-size:0.6rem;">
+                                @note.CreatedAt.ToLocalTime().ToString("d MMM yyyy")
+                            </span>
+                        </div>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+        </div>
+    </div>
+}
+
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingNote is null ? "Briefje toevoegen" : "Briefje bewerken")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField Label="Inhoud" @bind-Value="_contentInput"
+                      Lines="6"
+                      Required="true" Variant="Variant.Outlined"
+                      Placeholder="Schrijf hier je notitie..." />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@CloseDialog" Variant="Variant.Text">Annuleren</MudButton>
+        <MudButton OnClick="@SaveNote" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="@_saving" Style="font-weight: 600;">
+            @if (_saving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Opslaan
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CampaignDto? _campaign;
+    private List<CampaignNoteDto> _notes = [];
+    private bool _loading = true;
+    private Guid _currentUserId;
+    private bool _isAdmin;
+
+    private bool _dialogOpen;
+    private bool _saving;
+    private CampaignNoteDto? _editingNote;
+    private string _contentInput = string.Empty;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        Guid.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out _currentUserId);
+        _isAdmin = user.IsInRole("Admin");
+
+        _campaign = await ApiClient.GetCampaignAsync(Id);
+        if (_campaign is not null)
+            _notes = await ApiClient.GetNotesAsync(Id);
+        _loading = false;
+    }
+
+    private void OpenAddDialog()
+    {
+        _editingNote = null;
+        _contentInput = string.Empty;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(CampaignNoteDto note)
+    {
+        _editingNote = note;
+        _contentInput = note.Content;
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog() => _dialogOpen = false;
+
+    private async Task SaveNote()
+    {
+        if (string.IsNullOrWhiteSpace(_contentInput))
+        {
+            Snackbar.Add("Vul de inhoud in.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        var request = new CampaignNoteRequest(_contentInput.Trim());
+
+        if (_editingNote is null)
+        {
+            var created = await ApiClient.CreateNoteAsync(Id, request);
+            if (created is not null)
+            {
+                _notes.Insert(0, created);
+                Snackbar.Add("Briefje gepinned!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Er is een fout opgetreden.", Severity.Error);
+            }
+        }
+        else
+        {
+            var success = await ApiClient.UpdateNoteAsync(Id, _editingNote.Id, request);
+            if (success)
+            {
+                var idx = _notes.FindIndex(n => n.Id == _editingNote.Id);
+                if (idx >= 0)
+                {
+                    _notes[idx] = new CampaignNoteDto
+                    {
+                        Id = _editingNote.Id,
+                        CampaignId = Id,
+                        UserId = _editingNote.UserId,
+                        AuthorUsername = _editingNote.AuthorUsername,
+                        Content = _contentInput.Trim(),
+                        CreatedAt = _editingNote.CreatedAt,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
+                Snackbar.Add("Briefje bijgewerkt.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Er is een fout opgetreden.", Severity.Error);
+            }
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+    }
+
+    private async Task DeleteNote(CampaignNoteDto note)
+    {
+        var success = await ApiClient.DeleteNoteAsync(Id, note.Id);
+        if (success)
+        {
+            _notes.Remove(note);
+            Snackbar.Add("Briefje verwijderd.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Verwijderen mislukt.", Severity.Error);
+        }
+    }
+}

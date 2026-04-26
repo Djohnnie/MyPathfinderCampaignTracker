@@ -188,6 +188,26 @@ else
                 </MudButton>
             </MudPaper>
         </MudItem>
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.StickyNote2" Color="Color.Secondary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Notities</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Het prikbord van de campagne. Voeg briefjes toe.
+                        </MudText>
+                    </div>
+                </div>
+                <MudButton Href="@($"/campaigns/{Id}/notes")"
+                           Variant="Variant.Filled" Color="Color.Secondary"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600;">
+                    Notities bekijken
+                </MudButton>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
     <LoreaclePanel CampaignId="Id" />
 }
