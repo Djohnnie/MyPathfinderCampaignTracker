@@ -2,6 +2,7 @@ namespace MyPathfinderCampaignTracker.Domain.Entities;
 
 public class User
 {
+    public int SysId { get; set; }
     public Guid Id { get; set; }
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

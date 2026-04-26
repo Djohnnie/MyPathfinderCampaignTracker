@@ -2,6 +2,7 @@ namespace MyPathfinderCampaignTracker.Domain.Entities;
 
 public class LoreacleMessage
 {
+    public int SysId { get; set; }
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
     public Campaign Campaign { get; set; } = null!;

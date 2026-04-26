@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Infrastructure.Data;
@@ -18,7 +19,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(u => u.Id);
+            entity.Property(u => u.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(u => u.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(u => u.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.HasIndex(u => u.Username).IsUnique();
             entity.Property(u => u.Username).IsRequired().HasMaxLength(100);
             entity.Property(u => u.PasswordHash).IsRequired();
@@ -32,7 +35,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Campaign>(entity =>
         {
-            entity.HasKey(c => c.Id);
+            entity.Property(c => c.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(c => c.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(c => c.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(c => c.Title).IsRequired().HasMaxLength(200);
             entity.Property(c => c.Description).IsRequired();
             entity.Property(c => c.ExtensiveInformation).IsRequired();
@@ -40,11 +45,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasMany(c => c.Players)
                   .WithMany()
                   .UsingEntity("CampaignUsers");
+
+            modelBuilder.Entity("CampaignUsers", e =>
+            {
+                e.HasKey("CampaignId", "PlayersId").HasAnnotation("SqlServer:Clustered", false);
+                e.Property<int>("SysId").ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+                e.HasIndex("SysId").IsUnique().HasAnnotation("SqlServer:Clustered", true);
+            });
         });
 
         modelBuilder.Entity<Character>(entity =>
         {
-            entity.HasKey(c => c.Id);
+            entity.Property(c => c.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(c => c.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(c => c.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(c => c.Name).IsRequired().HasMaxLength(200);
             entity.Property(c => c.Race).IsRequired().HasMaxLength(100);
             entity.Property(c => c.CharacterClass).IsRequired().HasMaxLength(100);
@@ -63,7 +77,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Recap>(entity =>
         {
-            entity.HasKey(r => r.Id);
+            entity.Property(r => r.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(r => r.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(r => r.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(r => r.Title).IsRequired().HasMaxLength(200);
             entity.Property(r => r.Contents).IsRequired();
 
@@ -82,7 +98,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<ChatMessage>(entity =>
         {
-            entity.HasKey(m => m.Id);
+            entity.Property(m => m.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(m => m.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(m => m.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(m => m.Content).IsRequired();
 
             entity.HasOne(m => m.Campaign)
@@ -100,7 +118,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<GameSession>(entity =>
         {
-            entity.HasKey(s => s.Id);
+            entity.Property(s => s.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(s => s.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(s => s.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(s => s.Location).IsRequired().HasMaxLength(300);
 
             entity.HasOne(s => s.Campaign)
@@ -113,7 +133,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<CampaignNote>(entity =>
         {
-            entity.HasKey(n => n.Id);
+            entity.Property(n => n.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(n => n.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(n => n.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(n => n.Content).IsRequired();
 
             entity.HasOne(n => n.Campaign)
@@ -131,7 +153,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<LoreacleMessage>(entity =>
         {
-            entity.HasKey(m => m.Id);
+            entity.Property(m => m.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(m => m.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(m => m.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
             entity.Property(m => m.Content).IsRequired();
 
             entity.HasOne(m => m.Campaign)
