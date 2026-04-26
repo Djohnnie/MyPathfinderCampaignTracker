@@ -198,8 +198,7 @@ public class ApiClient(
         return result?.FormattedContents;
     }
 
-    public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)
-    {
+    public async Task<string?> ChatWithLoreacleAsync(Guid campaignId, LoreacleRequest request)    {
         var client = await CreateClientAsync();
         var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/loreacle", request);
         if (!response.IsSuccessStatusCode) return null;
@@ -219,5 +218,42 @@ public class ApiClient(
         var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/chat/", new ChatMessageRequest(content));
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<ChatMessageDto>();
+    }
+
+    public async Task<List<GameSessionDto>> GetGameSessionsAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        return await client.GetFromJsonAsync<List<GameSessionDto>>($"/api/campaigns/{campaignId}/sessions/") ?? [];
+    }
+
+    public async Task<GameSessionDto?> GetNextGameSessionAsync(Guid campaignId)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.GetAsync($"/api/campaigns/{campaignId}/sessions/next");
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return null;
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<GameSessionDto>();
+    }
+
+    public async Task<GameSessionDto?> CreateGameSessionAsync(Guid campaignId, GameSessionRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/campaigns/{campaignId}/sessions/", request);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<GameSessionDto>();
+    }
+
+    public async Task<bool> UpdateGameSessionAsync(Guid campaignId, Guid id, GameSessionRequest request)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/campaigns/{campaignId}/sessions/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteGameSessionAsync(Guid campaignId, Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/sessions/{id}");
+        return response.IsSuccessStatusCode;
     }
 }

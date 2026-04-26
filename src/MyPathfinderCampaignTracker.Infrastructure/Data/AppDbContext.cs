@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<Recap> Recaps => Set<Recap>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<GameSession> GameSessions => Set<GameSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +88,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(m => new { m.CampaignId, m.SentAt });
+        });
+
+        modelBuilder.Entity<GameSession>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Location).IsRequired().HasMaxLength(300);
+
+            entity.HasOne(s => s.Campaign)
+                  .WithMany()
+                  .HasForeignKey(s => s.CampaignId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(s => new { s.CampaignId, s.ScheduledAt });
         });
     }
 }

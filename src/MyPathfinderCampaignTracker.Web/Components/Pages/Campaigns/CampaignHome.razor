@@ -3,7 +3,6 @@
 @attribute [Authorize]
 @inject ApiClient ApiClient
 @inject NavigationManager Navigation
-
 <PageTitle>@(_campaign?.Title ?? "Campagne") — Pathfinder Campaign Tracker</PageTitle>
 
 @if (_loading)
@@ -41,10 +40,30 @@ else
         </MudItem>
         <MudItem xs="12" sm="6" md="3" Style="display: flex;">
             <MudPaper Elevation="0" Class="pa-4 flex-1" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Einddatum</MudText>
-                <MudText Typo="Typo.body1" Style="font-weight: 600;">
-                    @(_campaign.EndDate?.ToString("d MMMM yyyy") ?? "—")
-                </MudText>
+                @if (_campaign.EndDate.HasValue)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Einddatum</MudText>
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                        @_campaign.EndDate.Value.ToString("d MMMM yyyy")
+                    </MudText>
+                }
+                else if (_nextSession is not null)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Volgende sessie</MudText>
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                        @_nextSession.ScheduledAt.ToLocalTime().ToString("d MMMM yyyy")
+                    </MudText>
+                    <MudTooltip Text="@_nextSession.Location" Placement="Placement.Bottom">
+                        <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight: 600; cursor: default;">
+                            @_nextSession.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                        </MudText>
+                    </MudTooltip>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Einddatum</MudText>
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">—</MudText>
+                }
             </MudPaper>
         </MudItem>
         @if (!string.IsNullOrWhiteSpace(_campaign.Link))
@@ -88,65 +107,88 @@ else
         </MudPaper>
     }
 
-    <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border: 1px solid var(--mud-palette-lines-default);">
-        <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
-            <div class="d-flex align-center" style="gap: 12px;">
-                <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" Size="Size.Large" />
-                <div>
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Personages</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Bekijk en beheer de personages van deze campagne.
-                    </MudText>
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Personages</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Bekijk en beheer de personages van deze campagne.
+                        </MudText>
+                    </div>
                 </div>
-            </div>
-            <MudButton Href="@($"/campaigns/{Id}/characters")"
-                       Variant="Variant.Filled" Color="Color.Primary"
-                       EndIcon="@Icons.Material.Filled.ArrowForward"
-                       Style="text-transform: none; font-weight: 600;">
-                Personages bekijken
-            </MudButton>
-        </div>
-    </MudPaper>
-
-    <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border: 1px solid var(--mud-palette-lines-default);">
-        <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
-            <div class="d-flex align-center" style="gap: 12px;">
-                <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" />
-                <div>
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Terugblikken</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Lees en schrijf sessieverslagen voor deze campagne.
-                    </MudText>
+                <MudButton Href="@($"/campaigns/{Id}/characters")"
+                           Variant="Variant.Filled" Color="Color.Primary"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600;">
+                    Personages bekijken
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Terugblikken</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Lees en schrijf sessieverslagen voor deze campagne.
+                        </MudText>
+                    </div>
                 </div>
-            </div>
-            <MudButton Href="@($"/campaigns/{Id}/recaps")"
-                       Variant="Variant.Filled" Color="Color.Secondary"
-                       EndIcon="@Icons.Material.Filled.ArrowForward"
-                       Style="text-transform: none; font-weight: 600;">
-                Terugblikken bekijken
-            </MudButton>
-        </div>
-    </MudPaper>
-
-    <MudPaper Elevation="0" Class="pa-6" Style="border: 1px solid var(--mud-palette-lines-default);">
-        <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 12px;">
-            <div class="d-flex align-center" style="gap: 12px;">
-                <MudIcon Icon="@Icons.Material.Filled.Forum" Color="Color.Tertiary" Size="Size.Large" />
-                <div>
-                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Chat</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Chat met de andere spelers van deze campagne.
-                    </MudText>
+                <MudButton Href="@($"/campaigns/{Id}/recaps")"
+                           Variant="Variant.Filled" Color="Color.Secondary"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600;">
+                    Terugblikken bekijken
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Forum" Color="Color.Tertiary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Chat</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Chat met de andere spelers van deze campagne.
+                        </MudText>
+                    </div>
                 </div>
-            </div>
-            <MudButton Href="@($"/campaigns/{Id}/chat")"
-                       Variant="Variant.Filled" Color="Color.Tertiary"
-                       EndIcon="@Icons.Material.Filled.ArrowForward"
-                       Style="text-transform: none; font-weight: 600;">
-                Chat openen
-            </MudButton>
-        </div>
-    </MudPaper>
+                <MudButton Href="@($"/campaigns/{Id}/chat")"
+                           Variant="Variant.Filled" Color="Color.Tertiary"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600;">
+                    Chat openen
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" Size="Size.Large" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Sessies</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Bekijk en plan de sessies voor deze campagne.
+                        </MudText>
+                    </div>
+                </div>
+                <MudButton Href="@($"/campaigns/{Id}/sessions")"
+                           Variant="Variant.Filled" Color="Color.Primary"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600;">
+                    Sessies bekijken
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
     <LoreaclePanel CampaignId="Id" />
 }
 
@@ -154,11 +196,14 @@ else
     [Parameter] public Guid Id { get; set; }
 
     private CampaignDto? _campaign;
+    private GameSessionDto? _nextSession;
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
         _campaign = await ApiClient.GetCampaignAsync(Id);
+        if (_campaign is not null && !_campaign.EndDate.HasValue)
+            _nextSession = await ApiClient.GetNextGameSessionAsync(Id);
         _loading = false;
     }
 }

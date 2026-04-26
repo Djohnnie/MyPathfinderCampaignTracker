@@ -1,0 +1,279 @@
+@page "/campaigns/{Id:guid}/sessions"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Sessies — Pathfinder Campaign Tracker</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_campaign is null)
+{
+    <MudAlert Severity="Severity.Error">Campagne niet gevonden.</MudAlert>
+}
+else
+{
+    <div class="d-flex align-center mb-2" style="gap: 12px;">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo($"/campaigns/{Id}"))" />
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Sessies — @_campaign.Title</MudText>
+    </div>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Overzicht van alle geplande en afgelopen sessies voor deze campagne.
+    </MudText>
+
+    <div class="d-flex justify-end mb-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="@OpenAddDialog"
+                   Style="font-weight: 600;">
+            Sessie toevoegen
+        </MudButton>
+    </div>
+
+    @if (_sessions.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-8 text-center" Style="border: 1px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Filled.EventNote" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Nog geen sessies gepland.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        @if (UpcomingSessions.Count > 0)
+        {
+            <MudText Typo="Typo.h6" Class="pf-section-title mb-3">Aankomende sessies</MudText>
+            <MudGrid Spacing="3" Class="mb-6">
+                @foreach (var session in UpcomingSessions)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4 fantasy-card" Style="border-left: 4px solid var(--mud-palette-primary);">
+                            <div class="d-flex align-center justify-space-between mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Primary" />
+                                <div>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                   Color="Color.Default" OnClick="@(() => OpenEditDialog(session))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeleteSession(session))" />
+                                </div>
+                            </div>
+                            <MudText Typo="Typo.h6" Style="font-weight: 700;">
+                                @session.ScheduledAt.ToLocalTime().ToString("dddd d MMMM yyyy")
+                            </MudText>
+                            <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: 600;">
+                                @session.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                            </MudText>
+                            <div class="d-flex align-center mt-2" style="gap: 6px;">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@session.Location</MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+
+        @if (PastSessions.Count > 0)
+        {
+            <MudText Typo="Typo.h6" Class="pf-section-title mb-3">Afgelopen sessies</MudText>
+            <MudGrid Spacing="3">
+                @foreach (var session in PastSessions)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default); opacity: 0.7;">
+                            <div class="d-flex align-center justify-space-between mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Secondary" />
+                                <div>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                   Color="Color.Default" OnClick="@(() => OpenEditDialog(session))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                   Color="Color.Error" OnClick="@(() => DeleteSession(session))" />
+                                </div>
+                            </div>
+                            <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                                @session.ScheduledAt.ToLocalTime().ToString("dddd d MMMM yyyy")
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                @session.ScheduledAt.ToLocalTime().ToString("HH:mm") uur
+                            </MudText>
+                            <div class="d-flex align-center mt-1" style="gap: 6px;">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@session.Location</MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    }
+}
+
+<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingSession is null ? "Sessie toevoegen" : "Sessie bewerken")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Datum" @bind-Date="_selectedDate"
+                               DateFormat="dd-MM-yyyy" Required="true"
+                               Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTimePicker Label="Tijd" @bind-Time="_selectedTime"
+                               AmPm="false" Required="true"
+                               Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Label="Locatie" @bind-Value="_locationInput"
+                              Required="true" Variant="Variant.Outlined"
+                              Placeholder="bijv. De Kelder, Thuis bij Joris, Discord" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@CloseDialog" Variant="Variant.Text">Annuleren</MudButton>
+        <MudButton OnClick="@SaveSession" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="@_saving" Style="font-weight: 600;">
+            @if (_saving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Opslaan
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CampaignDto? _campaign;
+    private List<GameSessionDto> _sessions = [];
+    private bool _loading = true;
+
+    private List<GameSessionDto> UpcomingSessions =>
+        _sessions.Where(s => s.ScheduledAt >= DateTime.UtcNow).ToList();
+
+    private List<GameSessionDto> PastSessions =>
+        _sessions.Where(s => s.ScheduledAt < DateTime.UtcNow).OrderByDescending(s => s.ScheduledAt).ToList();
+
+    private bool _dialogOpen = false;
+    private bool _saving = false;
+    private GameSessionDto? _editingSession;
+
+    private DateTime? _selectedDate;
+    private TimeSpan? _selectedTime;
+    private string _locationInput = string.Empty;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _campaign = await ApiClient.GetCampaignAsync(Id);
+        if (_campaign is not null)
+            _sessions = await ApiClient.GetGameSessionsAsync(Id);
+        _loading = false;
+    }
+
+    private void OpenAddDialog()
+    {
+        _editingSession = null;
+        _selectedDate = DateTime.Today;
+        _selectedTime = new TimeSpan(20, 0, 0);
+        _locationInput = string.Empty;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(GameSessionDto session)
+    {
+        _editingSession = session;
+        _selectedDate = session.ScheduledAt.ToLocalTime().Date;
+        _selectedTime = session.ScheduledAt.ToLocalTime().TimeOfDay;
+        _locationInput = session.Location;
+        _dialogOpen = true;
+    }
+
+    private void CloseDialog()
+    {
+        _dialogOpen = false;
+    }
+
+    private async Task SaveSession()
+    {
+        if (_selectedDate is null || _selectedTime is null || string.IsNullOrWhiteSpace(_locationInput))
+        {
+            Snackbar.Add("Vul alle velden in.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+
+        var localDateTime = _selectedDate.Value.Date + _selectedTime.Value;
+        var scheduledAt = DateTime.SpecifyKind(localDateTime, DateTimeKind.Local).ToUniversalTime();
+        var request = new GameSessionRequest(scheduledAt, _locationInput.Trim());
+
+        bool success;
+        if (_editingSession is null)
+        {
+            var created = await ApiClient.CreateGameSessionAsync(Id, request);
+            success = created is not null;
+            if (success) _sessions.Add(created!);
+        }
+        else
+        {
+            success = await ApiClient.UpdateGameSessionAsync(Id, _editingSession.Id, request);
+            if (success)
+            {
+                var idx = _sessions.FindIndex(s => s.Id == _editingSession.Id);
+                if (idx >= 0)
+                {
+                    _sessions[idx] = new GameSessionDto
+                    {
+                        Id = _editingSession.Id,
+                        CampaignId = Id,
+                        ScheduledAt = scheduledAt,
+                        Location = _locationInput.Trim(),
+                        CreatedAt = _editingSession.CreatedAt,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
+            }
+        }
+
+        _saving = false;
+        _dialogOpen = false;
+
+        if (success)
+        {
+            _sessions = [.. _sessions.OrderBy(s => s.ScheduledAt)];
+            Snackbar.Add(_editingSession is null ? "Sessie toegevoegd." : "Sessie bijgewerkt.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Er is een fout opgetreden.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSession(GameSessionDto session)
+    {
+        var success = await ApiClient.DeleteGameSessionAsync(Id, session.Id);
+        if (success)
+        {
+            _sessions.Remove(session);
+            Snackbar.Add("Sessie verwijderd.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Verwijderen mislukt.", Severity.Error);
+        }
+    }
+}

@@ -13,6 +13,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ICharacterService, CharacterService>();
         services.AddScoped<IRecapService, RecapService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
+        services.AddScoped<IGameSessionService, GameSessionService>();
         return services;
     }
 }
