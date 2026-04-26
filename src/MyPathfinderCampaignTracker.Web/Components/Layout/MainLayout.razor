@@ -26,9 +26,9 @@
                                    Color="Color.Inherit" OnClick="ToggleTheme"
                                    Class="theme-toggle-btn" />
                 </MudTooltip>
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Inherit"
                          Class="mx-1" Icon="@Icons.Material.Filled.Person"
-                         Style="color: white !important;">
+                         Style="@($"color: {(_isDarkMode ? "#D4AF37" : "#F5EDD6")} !important;")">
                     @context.User.Identity?.Name
                 </MudChip>
                 <MudTooltip Text="Afmelden">

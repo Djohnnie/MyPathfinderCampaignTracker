@@ -33,14 +33,14 @@ else
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">@_campaign.Description</MudText>
 
     <MudGrid Spacing="3" Class="mb-6">
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <MudItem xs="12" sm="6" md="3" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-4 flex-1" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
                 <MudText Typo="Typo.caption" Color="Color.Secondary">Startdatum</MudText>
                 <MudText Typo="Typo.body1" Style="font-weight: 600;">@_campaign.StartDate.ToString("d MMMM yyyy")</MudText>
             </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <MudItem xs="12" sm="6" md="3" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-4 flex-1" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
                 <MudText Typo="Typo.caption" Color="Color.Secondary">Einddatum</MudText>
                 <MudText Typo="Typo.body1" Style="font-weight: 600;">
                     @(_campaign.EndDate?.ToString("d MMMM yyyy") ?? "—")
@@ -49,17 +49,17 @@ else
         </MudItem>
         @if (!string.IsNullOrWhiteSpace(_campaign.Link))
         {
-            <MudItem xs="12" sm="6" md="3">
-                <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+            <MudItem xs="12" sm="6" md="3" Style="display: flex;">
+                <MudPaper Elevation="0" Class="pa-4 flex-1" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
                     <MudText Typo="Typo.caption" Color="Color.Secondary">Meer informatie</MudText>
-                    <MudLink Href="@_campaign.Link" Target="_blank" Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="mr-1" />Bezoeken
+                    <MudLink Href="@_campaign.Link" Target="_blank" Typo="Typo.body1" Style="display: block;">
+                        <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="mr-1" Style="vertical-align: middle;" />Bezoeken
                     </MudLink>
                 </MudPaper>
             </MudItem>
         }
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Elevation="0" Class="pa-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+        <MudItem xs="12" sm="6" md="3" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-4 flex-1" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
                 <MudText Typo="Typo.caption" Color="Color.Secondary">Spelers</MudText>
                 <div class="d-flex flex-wrap mt-1" style="gap: 4px;">
                     @if (_campaign.Players.Count == 0)
