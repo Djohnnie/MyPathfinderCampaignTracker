@@ -64,7 +64,7 @@ else
                                     @character.Race · @character.CharacterClass · Niveau @character.Level
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Speler: @character.OwnerUsername
+                                    Speler: @character.OwnerUsername.CapFirst()
                                 </MudText>
                             </div>
                             @if (CanEdit(character))

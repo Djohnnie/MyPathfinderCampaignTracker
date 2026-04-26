@@ -25,7 +25,11 @@ else
                  Elevation="2"
                  Dense="true">
         <Columns>
-            <PropertyColumn Property="u => u.Username" Title="Gebruikersnaam" />
+            <TemplateColumn Title="Gebruikersnaam" SortBy="u => u.Username">
+                <CellTemplate>
+                    @context.Item.Username.CapFirst()
+                </CellTemplate>
+            </TemplateColumn>
             <TemplateColumn Title="Status">
                 <CellTemplate>
                     @if (context.Item.IsApproved)

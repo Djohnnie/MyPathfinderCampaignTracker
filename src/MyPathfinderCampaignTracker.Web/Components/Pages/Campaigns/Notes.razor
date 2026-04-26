@@ -71,7 +71,7 @@ else
                             @note.Content
                         </MudText>
                         <div class="parchment-note-author">
-                            ✒ @note.AuthorUsername
+                            ✒ @note.AuthorUsername.CapFirst()
                             <span style="opacity:0.55; margin-left:6px; font-size:0.6rem;">
                                 @note.CreatedAt.ToLocalTime().ToString("d MMM yyyy")
                             </span>

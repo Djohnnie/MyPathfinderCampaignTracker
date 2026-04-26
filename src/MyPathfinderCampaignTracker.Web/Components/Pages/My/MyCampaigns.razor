@@ -79,7 +79,7 @@ else
                                 @foreach (var player in campaign.Players)
                                 {
                                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
-                                        @player.Username
+                                        @player.Username.CapFirst()
                                     </MudChip>
                                 }
                             </div>

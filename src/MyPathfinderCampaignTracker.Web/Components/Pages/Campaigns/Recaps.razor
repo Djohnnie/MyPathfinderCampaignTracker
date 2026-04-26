@@ -69,7 +69,7 @@ else
                                     <MudIcon Icon="@Icons.Material.Filled.Person"
                                              Size="Size.Small" Color="Color.Secondary" />
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                        @recap.AuthorUsername
+                                        @recap.AuthorUsername.CapFirst()
                                     </MudText>
                                 </div>
                                 @if (CanEdit(recap))

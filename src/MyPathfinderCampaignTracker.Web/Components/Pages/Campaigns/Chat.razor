@@ -54,7 +54,7 @@ else
                     {
                         <MudAvatar Color="Color.Secondary" Size="Size.Small">@initials</MudAvatar>
                     }
-                    <MudXChatHeader Name="@(isOwn ? "You" : msg.Username)"
+                    <MudXChatHeader Name="@(isOwn ? "You" : msg.Username.CapFirst())"
                                     Time="@FormatTime(msg.SentAt)" />
                     <MudXChatBubble>@msg.Content</MudXChatBubble>
                 </MudXChat>

@@ -29,7 +29,7 @@
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Inherit"
                          Class="mx-1" Icon="@Icons.Material.Filled.Person"
                          Style="@($"color: {(_isDarkMode ? "#D4AF37" : "#F5EDD6")} !important;")">
-                    @context.User.Identity?.Name
+                    @context.User.Identity?.Name.CapFirst()
                 </MudChip>
                 <MudTooltip Text="Afmelden">
                     <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"

@@ -15,7 +15,7 @@
             <div class="d-flex align-center mb-2" style="gap: 10px;">
                 <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Primary" />
                 <MudText Typo="Typo.h5" Style="font-weight: 600; margin: 0;">
-                    Welkom terug, <strong>@context.User.Identity?.Name</strong>!
+                    Welkom terug, <strong>@context.User.Identity?.Name.CapFirst()</strong>!
                 </MudText>
             </div>
             <MudText Typo="Typo.body1" Color="Color.Secondary">
@@ -43,7 +43,7 @@
                             @foreach (var player in _latestCampaign.Players)
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
-                                    @player.Username
+                                    @player.Username.CapFirst()
                                 </MudChip>
                             }
                         </div>
