@@ -1,0 +1,151 @@
+@page "/campaigns/{Id:guid}/loreacle"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Security.Claims
+@inject ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using MyPathfinderCampaignTracker.Application.Models
+
+<PageTitle>Loreacle — Pathfinder Campaign Tracker</PageTitle>
+
+<div class="d-flex align-center mb-4" style="gap: 12px;">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                   OnClick="@(() => Navigation.NavigateTo($"/campaigns/{Id}"))" />
+    <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="color:#D4AF37;font-size:2rem;" />
+    <MudText Typo="Typo.h4" Style="font-family:'Cinzel';font-weight:700;">Loreacle</MudText>
+    <MudChip T="string" Color="Color.Success" Size="Size.Small">Online</MudChip>
+</div>
+
+<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4"
+         Style="font-family:'Crimson Text';font-style:italic;font-size:1rem;">
+    Spreek tot de Loreacle en ontrafel de geheimen van je campagne...
+</MudText>
+
+<div class="loreacle-page-container">
+
+    <div class="loreacle-page-messages">
+        @if (_messages.Count == 0)
+        {
+            <div class="d-flex flex-column align-center justify-center" style="height:100%;">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                         Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
+                <MudText Align="Align.Center" Typo="Typo.body1" Color="Color.Secondary"
+                         Style="font-family:'Crimson Text';font-style:italic;max-width:400px;">
+                    Stel een vraag over de campagne, de wereld, de personages of de avonturen...
+                </MudText>
+            </div>
+        }
+
+        @foreach (var msg in _messages)
+        {
+            <MudXChat Dense="true" Class="mb-3"
+                      ChatPosition="@(msg.IsUser ? ChatBubblePosition.End : ChatBubblePosition.Start)"
+                      Color="@(msg.IsUser ? Color.Primary : Color.Default)"
+                      Variant="Variant.Filled"
+                      Elevation="0">
+                @foreach (var part in msg.Content.Split("[BR]", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <MudXChatBubble>@part</MudXChatBubble>
+                }
+            </MudXChat>
+        }
+
+        @if (_isThinking)
+        {
+            <MudXChat Dense="true" Class="mb-3" ChatPosition="ChatBubblePosition.Start"
+                      Color="Color.Default" Variant="Variant.Filled" Elevation="0">
+                <MudXChatBubble>
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                </MudXChatBubble>
+            </MudXChat>
+        }
+
+        <div @ref="_scrollAnchor"></div>
+    </div>
+
+    <div class="loreacle-page-input">
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="1" Class="pa-3">
+            <MudTextField @bind-Value="_input"
+                          @onkeydown="OnKeyDown"
+                          Placeholder="Vraag de Loreacle..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="flex-grow-1"
+                          Immediate="true"
+                          Lines="1"
+                          Disabled="_isThinking" />
+            <MudIconButton Icon="@Icons.Material.Filled.Send"
+                           Color="Color.Primary"
+                           OnClick="SendAsync"
+                           Disabled="@(string.IsNullOrWhiteSpace(_input) || _isThinking)" />
+        </MudStack>
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _isThinking;
+    private string _input = string.Empty;
+    private List<(bool IsUser, string Content)> _messages = [];
+    private ElementReference _scrollAnchor;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await ScrollToBottomAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await SendAsync();
+    }
+
+    private async Task SendAsync()
+    {
+        var userMessage = _input.Trim();
+        if (string.IsNullOrWhiteSpace(userMessage) || _isThinking) return;
+
+        _input = string.Empty;
+        _messages.Add((true, userMessage));
+        _isThinking = true;
+        StateHasChanged();
+        await ScrollToBottomAsync();
+
+        try
+        {
+            var history = _messages
+                .Take(_messages.Count - 1)
+                .Select(m => new LoreacleMessageDto(m.IsUser, m.Content))
+                .ToList();
+
+            var reply = await ApiClient.ChatWithLoreacleAsync(
+                Id, new LoreacleRequest(userMessage, history));
+
+            _messages.Add((false, reply ?? "De Loreacle antwoordt niet..."));
+        }
+        catch
+        {
+            _messages.Add((false, "Er is iets misgegaan. Probeer het opnieuw."));
+        }
+        finally
+        {
+            _isThinking = false;
+            StateHasChanged();
+            await ScrollToBottomAsync();
+        }
+    }
+
+    private async Task ScrollToBottomAsync()
+    {
+        try
+        {
+            await Task.Delay(50);
+            await JS.InvokeVoidAsync("chatScrollToBottom");
+        }
+        catch { /* ignore during prerender */ }
+    }
+}

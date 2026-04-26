@@ -264,8 +264,27 @@ else
                 </MudButton>
             </MudPaper>
         </MudItem>
+        <MudItem xs="12" sm="6" Style="display: flex;">
+            <MudPaper Elevation="0" Class="pa-6 flex-1 d-flex flex-column justify-space-between" Style="border: 1px solid var(--mud-palette-lines-default); width: 100%;">
+                <div class="d-flex align-center mb-3" style="gap: 12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="color:#D4AF37;font-size:2.1875rem;" />
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight: 600; font-family:'Cinzel';">Loreacle</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Stel vragen aan de AI-orakel van je campagne.
+                        </MudText>
+                    </div>
+                </div>
+                <MudButton Href="@($"/campaigns/{Id}/loreacle")"
+                           Variant="Variant.Filled"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           FullWidth="true"
+                           Style="text-transform: none; font-weight: 600; background-color:#2D1A0A; color:#D4AF37;">
+                    Loreacle raadplegen
+                </MudButton>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
-    <LoreaclePanel CampaignId="Id" />
 }
 
 @code {
