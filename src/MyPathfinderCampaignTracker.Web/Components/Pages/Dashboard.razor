@@ -94,7 +94,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var campaigns = await ApiClient.GetCampaignsAsync();
+        var campaigns = await ApiClient.GetMyCampaignsAsync();
         _latestCampaign = campaigns.MaxBy(c => c.UpdatedAt);
     }
 }

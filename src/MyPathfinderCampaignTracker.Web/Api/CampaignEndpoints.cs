@@ -23,12 +23,20 @@ public static class CampaignEndpoints
         {
             var campaigns = await campaignService.GetAllAsync();
             return Results.Ok(campaigns);
-        }).RequireAuthorization("ApiAuth");
+        }).RequireAuthorization("ApiAdmin");
 
-        group.MapGet("/{id:guid}", async (Guid id, ICampaignService campaignService) =>
+        group.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, ICampaignService campaignService) =>
         {
             var campaign = await campaignService.GetByIdAsync(id);
-            return campaign is null ? Results.NotFound() : Results.Ok(campaign);
+            if (campaign is null) return Results.NotFound();
+
+            var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid.TryParse(userIdStr, out var userId);
+
+            if (!user.IsInRole("Admin") && !campaign.Players.Any(p => p.Id == userId))
+                return Results.Forbid();
+
+            return Results.Ok(campaign);
         }).RequireAuthorization("ApiAuth");
 
         group.MapPost("/", async (CampaignRequest request, ICampaignService campaignService) =>
