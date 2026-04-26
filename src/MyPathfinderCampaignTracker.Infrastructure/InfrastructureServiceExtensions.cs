@@ -35,6 +35,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ILoreacleHistoryRepository, LoreacleHistoryRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddSingleton<IImageProcessingService, ImageProcessingService>();
 
         var endpoint = configuration["AZURE_OPENAI_ENDPOINT"];
         var apiKey = configuration["AZURE_OPENAI_KEY"];

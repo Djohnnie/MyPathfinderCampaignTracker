@@ -92,6 +92,38 @@ public static class CharacterEndpoints
             return deleted ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAuth");
 
+        group.MapPost("/{id:guid}/photo", async (
+            Guid id,
+            IFormFile photo,
+            ClaimsPrincipal user,
+            ICharacterService characterService) =>
+        {
+            var existing = await characterService.GetByIdAsync(id);
+            if (existing is null) return Results.NotFound();
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Results.Unauthorized();
+
+            var isAdmin = user.IsInRole("Admin");
+            if (existing.UserId != userId && !isAdmin)
+                return Results.Forbid();
+
+            await using var stream = photo.OpenReadStream();
+            var ok = await characterService.UploadPhotoAsync(id, stream);
+            return ok ? Results.Ok() : Results.NotFound();
+        }).RequireAuthorization("ApiAuth")
+          .DisableAntiforgery();
+
+        group.MapGet("/{id:guid}/photo", async (
+            Guid id,
+            ICharacterService characterService) =>
+        {
+            var data = await characterService.GetPhotoAsync(id);
+            if (data is null) return Results.NotFound();
+            return Results.File(data, "image/png");
+        }).RequireAuthorization("ApiAuth");
+
         return routes;
     }
 }

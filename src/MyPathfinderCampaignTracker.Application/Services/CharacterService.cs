@@ -4,7 +4,9 @@ using MyPathfinderCampaignTracker.Domain.Entities;
 
 namespace MyPathfinderCampaignTracker.Application.Services;
 
-public class CharacterService(ICharacterRepository characterRepository) : ICharacterService
+public class CharacterService(
+    ICharacterRepository characterRepository,
+    IImageProcessingService imageProcessingService) : ICharacterService
 {
     public async Task<IReadOnlyList<CharacterDto>> GetByCampaignAsync(Guid campaignId)
     {
@@ -96,6 +98,19 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
         return true;
     }
 
+    public async Task<bool> UploadPhotoAsync(Guid id, Stream photoStream)
+    {
+        var character = await characterRepository.GetByIdAsync(id);
+        if (character is null) return false;
+
+        var processed = await imageProcessingService.CreateCircularAvatarAsync(photoStream);
+        await characterRepository.UpsertPhotoDataAsync(id, processed);
+        return true;
+    }
+
+    public Task<byte[]?> GetPhotoAsync(Guid id) =>
+        characterRepository.GetPhotoDataAsync(id);
+
     private static CharacterDto MapToDto(Character c, bool includeCampaignName = false) => new()
     {
         Id = c.Id,
@@ -121,6 +136,7 @@ public class CharacterService(ICharacterRepository characterRepository) : IChara
         Flaws = c.Flaws,
         Languages = c.Languages,
         Appearance = c.Appearance,
+        HasPhoto = c.PhotoData != null,
         CreatedAt = c.CreatedAt,
         UpdatedAt = c.UpdatedAt
     };

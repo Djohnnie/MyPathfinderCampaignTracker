@@ -10,4 +10,6 @@ public interface ICharacterRepository
     Task AddAsync(Character character);
     Task UpdateAsync(Character character);
     Task DeleteAsync(Guid id);
+    Task<byte[]?> GetPhotoDataAsync(Guid id);
+    Task UpsertPhotoDataAsync(Guid id, byte[] data);
 }

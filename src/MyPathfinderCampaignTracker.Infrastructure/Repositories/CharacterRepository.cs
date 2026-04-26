@@ -50,4 +50,15 @@ public class CharacterRepository(AppDbContext context) : ICharacterRepository
             await context.SaveChangesAsync();
         }
     }
+
+    public async Task<byte[]?> GetPhotoDataAsync(Guid id)
+        => await context.Characters
+            .Where(c => c.Id == id)
+            .Select(c => c.PhotoData)
+            .FirstOrDefaultAsync();
+
+    public async Task UpsertPhotoDataAsync(Guid id, byte[] data)
+        => await context.Characters
+            .Where(c => c.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.PhotoData, data));
 }

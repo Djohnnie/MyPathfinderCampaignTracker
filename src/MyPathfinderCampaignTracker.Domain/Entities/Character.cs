@@ -25,6 +25,7 @@ public class Character
     public string? Flaws { get; set; }
     public string? Languages { get; set; }
     public string? Appearance { get; set; }
+    public byte[]? PhotoData { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

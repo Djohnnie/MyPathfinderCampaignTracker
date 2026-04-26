@@ -25,6 +25,7 @@ public class CharacterDto
     public string? Flaws { get; set; }
     public string? Languages { get; set; }
     public string? Appearance { get; set; }
+    public bool HasPhoto { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

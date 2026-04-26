@@ -10,4 +10,6 @@ public interface ICharacterService
     Task<CharacterDto> CreateAsync(Guid campaignId, Guid userId, CharacterRequest request);
     Task<bool> UpdateAsync(Guid id, CharacterRequest request);
     Task<bool> DeleteAsync(Guid id);
+    Task<bool> UploadPhotoAsync(Guid id, Stream photoStream);
+    Task<byte[]?> GetPhotoAsync(Guid id);
 }

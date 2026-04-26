@@ -49,23 +49,33 @@ else
             {
                 <MudItem xs="12" md="6" xl="4">
                     <MudPaper Elevation="0" Class="pa-4 card-hover" Style="border: 1px solid var(--mud-palette-lines-default);">
-                        @* Header *@
+        @* Header *@
                         <div class="d-flex align-center justify-space-between mb-3">
-                            <div>
-                                <div class="d-flex align-center" style="gap: 8px;">
-                                    <MudText Typo="Typo.h6" Style="font-weight: 700;">@character.Name</MudText>
-                                    @if (character.KilledInAction)
-                                    {
-                                        <MudChip T="string" Color="Color.Error" Size="Size.Small"
-                                                 Icon="@Icons.Material.Filled.Dangerous">KIA</MudChip>
-                                    }
+                            <div class="d-flex align-center" style="gap: 12px;">
+                                @if (_photoCache.TryGetValue(character.Id, out var avatarSrc) && avatarSrc is not null)
+                                {
+                                    <img src="@avatarSrc" style="width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;" alt="Avatar" />
+                                }
+                                else
+                                {
+                                    <MudAvatar Color="Color.Primary" Style="width: 56px; height: 56px; flex-shrink: 0; font-size: 1.4rem;">@character.Name.FirstOrDefault()</MudAvatar>
+                                }
+                                <div>
+                                    <div class="d-flex align-center" style="gap: 8px;">
+                                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@character.Name</MudText>
+                                        @if (character.KilledInAction)
+                                        {
+                                            <MudChip T="string" Color="Color.Error" Size="Size.Small"
+                                                     Icon="@Icons.Material.Filled.Dangerous">KIA</MudChip>
+                                        }
+                                    </div>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @character.Race · @character.CharacterClass · Niveau @character.Level
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Speler: @character.OwnerUsername.CapFirst()
+                                    </MudText>
                                 </div>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    @character.Race · @character.CharacterClass · Niveau @character.Level
-                                </MudText>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Speler: @character.OwnerUsername.CapFirst()
-                                </MudText>
                             </div>
                             @if (CanEdit(character))
                             {
@@ -133,104 +143,15 @@ else
 }
 
 @* ─── Create / Edit Dialog ─── *@
-<MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
-    <TitleContent>
-        <MudText Typo="Typo.h6">@(_editingId.HasValue ? "Personage bewerken" : "Nieuw personage")</MudText>
-    </TitleContent>
-    <DialogContent>
-        <MudGrid Spacing="2">
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.Name" Label="Naam" Variant="Variant.Outlined"
-                              Required="true" MaxLength="200" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.Race" Label="Ras" Variant="Variant.Outlined"
-                              Required="true" MaxLength="100" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.CharacterClass" Label="Klasse" Variant="Variant.Outlined"
-                              Required="true" MaxLength="100" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudNumericField @bind-Value="_form.Level" Label="Niveau" Variant="Variant.Outlined"
-                                 Min="1" Max="20" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Backstory" Label="Achtergrond" Variant="Variant.Outlined"
-                              Lines="3" />
-            </MudItem>
-
-            <MudItem xs="12">
-                <MudDivider Class="my-1" />
-                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">Vermogensscores</MudText>
-            </MudItem>
-
-            @foreach (var (label, prop) in AbilityScoreFields())
-            {
-                <MudItem xs="6" sm="4">
-                    <MudNumericField T="int" Label="@label" Variant="Variant.Outlined"
-                                     Min="1" Max="30"
-                                     Value="@prop.Getter(_form)"
-                                     ValueChanged="@(v => prop.Setter(_form, v))"
-                                     HelperText="@AbilityHelperText(prop.Getter(_form))" />
-                </MudItem>
-            }
-
-            <MudItem xs="12">
-                <MudDivider Class="my-1" />
-                <MudSwitch @bind-Value="_form.KilledInAction" Label="Gedood in actie (KIA)"
-                           Color="Color.Error" Class="mt-1" />
-            </MudItem>
-
-            <MudItem xs="12">
-                <MudDivider Class="my-2" />
-                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">Verhaal &amp; Persoonlijkheid (optioneel)</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="_form.Alignment" Label="Gezindheid" Variant="Variant.Outlined"
-                           Clearable="true" T="string">
-                    <MudSelectItem T="string" Value="@("Wettig Goed")">Wettig Goed</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Neutraal Goed")">Neutraal Goed</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Chaotisch Goed")">Chaotisch Goed</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Wettig Neutraal")">Wettig Neutraal</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Waar Neutraal")">Waar Neutraal</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Chaotisch Neutraal")">Chaotisch Neutraal</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Wettig Kwaad")">Wettig Kwaad</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Neutraal Kwaad")">Neutraal Kwaad</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Chaotisch Kwaad")">Chaotisch Kwaad</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.Languages" Label="Talen" Variant="Variant.Outlined"
-                              MaxLength="200" Placeholder="bv. Gemeen, Elfs, Dwergisch" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Appearance" Label="Uiterlijk" Variant="Variant.Outlined"
-                              Lines="2" MaxLength="500" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Personality" Label="Persoonlijkheid" Variant="Variant.Outlined"
-                              Lines="2" MaxLength="500" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.IdealsAndGoals" Label="Idealen &amp; Doelen" Variant="Variant.Outlined"
-                              Lines="2" MaxLength="500" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Flaws" Label="Tekortkomingen" Variant="Variant.Outlined"
-                              Lines="2" MaxLength="500" />
-            </MudItem>
-        </MudGrid>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="CloseDialog" Variant="Variant.Text" Style="text-transform: none;">Annuleren</MudButton>
-        <MudButton OnClick="SaveCharacter" Variant="Variant.Filled" Color="Color.Primary"
-                   Disabled="_saving" Style="text-transform: none; font-weight: 600;">
-            @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-            Opslaan
-        </MudButton>
-    </DialogActions>
-</MudDialog>
+<CharacterDialog @bind-IsOpen="_dialogOpen"
+                 EditingId="_editingId"
+                 Form="_form"
+                 Saving="_saving"
+                 SelectedPhoto="_selectedPhoto"
+                 SelectedPhotoChanged="@(f => _selectedPhoto = f)"
+                 PhotoCache="_photoCache"
+                 OnClose="CloseDialog"
+                 OnSave="SaveCharacter" />
 
 @* ─── Delete Confirm Dialog ─── *@
 <MudDialog @bind-Visible="_deleteDialogOpen" Options="_deleteDialogOptions">
@@ -266,19 +187,16 @@ else
     // Create/Edit dialog
     private bool _dialogOpen;
     private Guid? _editingId;
-    private CharacterFormModel _form = new();
+    private CharacterDialog.CharacterFormModel _form = new();
     private bool _saving;
+    private IBrowserFile? _selectedPhoto;
+
+    // Photo cache: characterId -> data URI
+    private Dictionary<Guid, string?> _photoCache = new();
 
     // Delete dialog
     private bool _deleteDialogOpen;
     private CharacterDto? _deletingCharacter;
-
-    private readonly DialogOptions _dialogOptions = new()
-    {
-        MaxWidth = MaxWidth.Medium,
-        FullWidth = true,
-        CloseOnEscapeKey = true
-    };
 
     private readonly DialogOptions _deleteDialogOptions = new()
     {
@@ -304,6 +222,20 @@ else
     private async Task LoadCharactersAsync()
     {
         _characters = await ApiClient.GetCharactersAsync(CampaignId);
+        await LoadPhotosAsync();
+    }
+
+    private async Task LoadPhotosAsync()
+    {
+        var tasks = _characters
+            .Where(c => c.HasPhoto)
+            .Select(async c =>
+            {
+                var bytes = await ApiClient.GetCharacterPhotoAsync(c.Id);
+                if (bytes is not null)
+                    _photoCache[c.Id] = $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+            });
+        await Task.WhenAll(tasks);
     }
 
     private bool CanEdit(CharacterDto character) =>
@@ -312,14 +244,16 @@ else
     private void OpenCreateDialog()
     {
         _editingId = null;
-        _form = new CharacterFormModel();
+        _form = new CharacterDialog.CharacterFormModel();
+        _selectedPhoto = null;
         _dialogOpen = true;
     }
 
     private void OpenEditDialog(CharacterDto character)
     {
         _editingId = character.Id;
-        _form = new CharacterFormModel
+        _selectedPhoto = null;
+        _form = new CharacterDialog.CharacterFormModel
         {
             Name = character.Name,
             Race = character.Race,
@@ -343,7 +277,11 @@ else
         _dialogOpen = true;
     }
 
-    private void CloseDialog() => _dialogOpen = false;
+    private void CloseDialog()
+    {
+        _dialogOpen = false;
+        _selectedPhoto = null;
+    }
 
     private async Task SaveCharacter()
     {
@@ -379,11 +317,15 @@ else
             if (_editingId.HasValue)
             {
                 var ok = await ApiClient.UpdateCharacterAsync(_editingId.Value, request);
+                if (ok && _selectedPhoto is not null)
+                    await ApiClient.UploadCharacterPhotoAsync(_editingId.Value, _selectedPhoto);
                 Snackbar.Add(ok ? "Personage bijgewerkt." : "Bijwerken mislukt.", ok ? Severity.Success : Severity.Error);
             }
             else
             {
                 var created = await ApiClient.CreateCharacterAsync(CampaignId, request);
+                if (created is not null && _selectedPhoto is not null)
+                    await ApiClient.UploadCharacterPhotoAsync(created.Id, _selectedPhoto);
                 Snackbar.Add(created is not null ? "Personage aangemaakt." : "Aanmaken mislukt.",
                     created is not null ? Severity.Success : Severity.Error);
             }
@@ -422,12 +364,6 @@ else
 
     private static int Modifier(int score) => (int)Math.Floor((score - 10) / 2.0);
 
-    private static string AbilityHelperText(int score)
-    {
-        var mod = Modifier(score);
-        return $"Modifier: {(mod >= 0 ? "+" : "")}{mod}";
-    }
-
     private static IEnumerable<(string Label, int Score)> AbilityScores(CharacterDto c) =>
     [
         ("STR", c.Strength),
@@ -437,38 +373,4 @@ else
         ("WIS", c.Wisdom),
         ("CHA", c.Charisma)
     ];
-
-    private record AbilityFieldProp(Func<CharacterFormModel, int> Getter, Action<CharacterFormModel, int> Setter);
-
-    private static IEnumerable<(string Label, AbilityFieldProp Prop)> AbilityScoreFields() =>
-    [
-        ("STR", new(m => m.Strength,    (m, v) => m.Strength    = v)),
-        ("DEX", new(m => m.Dexterity,   (m, v) => m.Dexterity   = v)),
-        ("CON", new(m => m.Constitution,(m, v) => m.Constitution = v)),
-        ("INT", new(m => m.Intelligence,(m, v) => m.Intelligence = v)),
-        ("WIS", new(m => m.Wisdom,      (m, v) => m.Wisdom       = v)),
-        ("CHA", new(m => m.Charisma,    (m, v) => m.Charisma     = v))
-    ];
-
-    private class CharacterFormModel
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Race { get; set; } = string.Empty;
-        public string CharacterClass { get; set; } = string.Empty;
-        public int Level { get; set; } = 1;
-        public string Backstory { get; set; } = string.Empty;
-        public int Strength { get; set; } = 10;
-        public int Dexterity { get; set; } = 10;
-        public int Constitution { get; set; } = 10;
-        public int Intelligence { get; set; } = 10;
-        public int Wisdom { get; set; } = 10;
-        public int Charisma { get; set; } = 10;
-        public bool KilledInAction { get; set; }
-        public string? Alignment { get; set; }
-        public string? Personality { get; set; }
-        public string? IdealsAndGoals { get; set; }
-        public string? Flaws { get; set; }
-        public string? Languages { get; set; }
-        public string? Appearance { get; set; }
-    }
 }

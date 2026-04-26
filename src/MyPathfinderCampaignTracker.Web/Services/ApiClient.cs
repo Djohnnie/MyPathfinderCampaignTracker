@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using MyPathfinderCampaignTracker.Application.Models;
 
 namespace MyPathfinderCampaignTracker.Web.Services;
@@ -151,6 +152,26 @@ public class ApiClient(
         var client = await CreateClientAsync();
         var response = await client.DeleteAsync($"/api/characters/{id}");
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UploadCharacterPhotoAsync(Guid id, IBrowserFile file)
+    {
+        var client = await CreateClientAsync();
+        await using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(stream);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+        content.Add(streamContent, "photo", file.Name);
+        var response = await client.PostAsync($"/api/characters/{id}/photo", content);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<byte[]?> GetCharacterPhotoAsync(Guid id)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.GetAsync($"/api/characters/{id}/photo");
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadAsByteArrayAsync();
     }
 
     public async Task<List<RecapDto>> GetMyRecapsAsync()
