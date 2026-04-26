@@ -39,6 +39,13 @@ public class ApiClient(
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> DeleteUserAsync(Guid userId)
+    {
+        var client = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/users/{userId}");
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<bool> DemoteUserAsync(Guid userId)
     {
         var client = await CreateClientAsync();

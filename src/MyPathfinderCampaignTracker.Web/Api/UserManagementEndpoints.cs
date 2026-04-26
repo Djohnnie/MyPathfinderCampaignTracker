@@ -51,6 +51,12 @@ public static class UserManagementEndpoints
             };
         });
 
+        group.MapDelete("/{id:guid}", async (Guid id, IUserService userService) =>
+        {
+            var deleted = await userService.DeleteUserAsync(id);
+            return deleted ? Results.Ok() : Results.NotFound();
+        });
+
         return routes;
     }
 }

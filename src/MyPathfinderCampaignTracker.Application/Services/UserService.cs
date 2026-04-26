@@ -82,6 +82,9 @@ public class UserService(
         return PromoteResult.Success;
     }
 
+    public async Task<bool> DeleteUserAsync(Guid userId) =>
+        await userRepository.DeleteAsync(userId);
+
     public async Task SetDarkModeAsync(Guid userId, bool isDarkMode)
     {
         var user = await userRepository.GetByIdAsync(userId);

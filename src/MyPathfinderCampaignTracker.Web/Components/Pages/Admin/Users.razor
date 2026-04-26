@@ -88,15 +88,37 @@ else
                             Degraderen
                         </MudButton>
                     }
+                    <MudIconButton Icon="@Icons.Material.Filled.DeleteForever"
+                                   Size="Size.Small"
+                                   Color="Color.Error"
+                                   Title="Gebruiker verwijderen"
+                                   Class="ml-1"
+                                   OnClick="() => ConfirmDeleteUser(context.Item)" />
                 </CellTemplate>
             </TemplateColumn>
         </Columns>
     </MudDataGrid>
 }
 
+<MudMessageBox @ref="_deleteBox" Title="Gebruiker verwijderen" CancelText="Annuleren">
+    <MessageContent>
+        @if (_userToDelete is not null)
+        {
+            <MudText>Weet je zeker dat je <strong>@_userToDelete.Username.CapFirst()</strong> wilt verwijderen?
+                Alle bijbehorende personages, terugblikken, notities en berichten worden ook verwijderd.
+                Dit kan niet ongedaan worden gemaakt.</MudText>
+        }
+    </MessageContent>
+    <YesButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled">Verwijderen</MudButton>
+    </YesButton>
+</MudMessageBox>
+
 @code {
     private List<UserDto> _users = [];
     private bool _loading = true;
+    private MudMessageBox? _deleteBox;
+    private UserDto? _userToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,6 +150,22 @@ else
     {
         var success = await Api.DemoteUserAsync(userId);
         Snackbar.Add(success ? "Gebruiker gedegradeerd tot gebruiker." : "Degraderen mislukt.", success ? Severity.Success : Severity.Error);
+        if (success) await LoadUsers();
+    }
+
+    private async Task ConfirmDeleteUser(UserDto user)
+    {
+        _userToDelete = user;
+        var confirmed = await _deleteBox!.ShowAsync();
+        if (confirmed == true)
+            await DeleteUser(user.Id);
+        _userToDelete = null;
+    }
+
+    private async Task DeleteUser(Guid userId)
+    {
+        var success = await Api.DeleteUserAsync(userId);
+        Snackbar.Add(success ? "Gebruiker verwijderd." : "Verwijderen mislukt.", success ? Severity.Success : Severity.Error);
         if (success) await LoadUsers();
     }
 }
