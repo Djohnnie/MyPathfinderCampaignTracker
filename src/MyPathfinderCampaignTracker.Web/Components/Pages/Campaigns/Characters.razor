@@ -80,6 +80,11 @@ else
                             @if (CanEdit(character))
                             {
                                 <div>
+                                    <MudTooltip Text="Character Sheet">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Article" Size="Size.Small"
+                                                       Color="Color.Secondary"
+                                                       OnClick="@(() => Navigation.NavigateTo($"/campaigns/{CampaignId}/characters/{character.Id}/sheet"))" />
+                                    </MudTooltip>
                                     <MudTooltip Text="Bewerken">
                                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                                        Color="Color.Primary" OnClick="@(() => OpenEditDialog(character))" />

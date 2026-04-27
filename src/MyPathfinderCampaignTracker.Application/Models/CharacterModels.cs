@@ -49,3 +49,78 @@ public record CharacterRequest(
     string? Flaws = null,
     string? Languages = null,
     string? Appearance = null);
+
+public class CharacterSheetDto
+{
+    public Guid Id { get; set; }
+    public Guid CharacterId { get; set; }
+
+    public int MaxHitPoints { get; set; }
+    public int CurrentHitPoints { get; set; }
+    public int TemporaryHitPoints { get; set; }
+
+    public int ArmorClass { get; set; }
+    public int TouchArmorClass { get; set; }
+    public int FlatFootedArmorClass { get; set; }
+
+    public int InitiativeBonus { get; set; }
+    public int Speed { get; set; }
+
+    public int BaseAttackBonus { get; set; }
+    public int CombatManeuverBonus { get; set; }
+    public int CombatManeuverDefense { get; set; }
+
+    public int FortitudeSave { get; set; }
+    public int ReflexSave { get; set; }
+    public int WillSave { get; set; }
+
+    public List<SkillEntryDto> Skills { get; set; } = [];
+
+    public string? Feats { get; set; }
+    public string? SpecialAbilities { get; set; }
+    public string? Equipment { get; set; }
+    public string? Spells { get; set; }
+    public string? Notes { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class SkillEntryDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string AbilityKey { get; set; } = string.Empty;
+    public bool IsClassSkill { get; set; }
+    public int Ranks { get; set; }
+    public int MiscBonus { get; set; }
+    public bool TrainedOnly { get; set; }
+}
+
+public record CharacterSheetRequest(
+    int MaxHitPoints,
+    int CurrentHitPoints,
+    int TemporaryHitPoints,
+    int ArmorClass,
+    int TouchArmorClass,
+    int FlatFootedArmorClass,
+    int InitiativeBonus,
+    int Speed,
+    int BaseAttackBonus,
+    int CombatManeuverBonus,
+    int CombatManeuverDefense,
+    int FortitudeSave,
+    int ReflexSave,
+    int WillSave,
+    List<SkillEntryRequest> Skills,
+    string? Feats = null,
+    string? SpecialAbilities = null,
+    string? Equipment = null,
+    string? Spells = null,
+    string? Notes = null);
+
+public record SkillEntryRequest(
+    string Name,
+    string AbilityKey,
+    bool IsClassSkill,
+    int Ranks,
+    int MiscBonus,
+    bool TrainedOnly);

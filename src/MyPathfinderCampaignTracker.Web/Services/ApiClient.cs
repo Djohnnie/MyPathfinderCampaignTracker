@@ -213,6 +213,19 @@ public class ApiClient(
         return await response.Content.ReadAsByteArrayAsync();
     }
 
+    public async Task<CharacterSheetDto?> GetCharacterSheetAsync(Guid characterId)
+    {
+        return await GetJsonAsync<CharacterSheetDto>($"/api/characters/{characterId}/sheet/");
+    }
+
+    public async Task<bool> UpdateCharacterSheetAsync(Guid characterId, CharacterSheetRequest request)
+    {
+        var (client, hasToken) = await CreateClientAsync();
+        var response = await client.PutAsJsonAsync($"/api/characters/{characterId}/sheet/", request);
+        HandleUnauthorized(response, hasToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<List<RecapDto>> GetMyRecapsAsync()
     {
         return await GetJsonAsync<List<RecapDto>>("/api/recaps/my") ?? [];

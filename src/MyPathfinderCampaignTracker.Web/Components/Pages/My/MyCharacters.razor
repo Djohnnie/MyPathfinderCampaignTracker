@@ -80,6 +80,11 @@ else
                                         <MudIcon Icon="@(character.KilledInAction ? Icons.Material.Filled.HeartBroken : Icons.Material.Filled.Shield)"
                                                  Color="@(character.KilledInAction ? Color.Error : Color.Primary)"
                                                  Size="Size.Medium" />
+                                        <MudTooltip Text="Character Sheet">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Article" Size="Size.Small"
+                                                           Color="Color.Secondary"
+                                                           OnClick="@(() => Navigation.NavigateTo($"/campaigns/{character.CampaignId}/characters/{character.Id}/sheet"))" />
+                                        </MudTooltip>
                                         <MudTooltip Text="Bewerken">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                                            Color="Color.Primary" OnClick="@(() => OpenEditDialog(character))" />

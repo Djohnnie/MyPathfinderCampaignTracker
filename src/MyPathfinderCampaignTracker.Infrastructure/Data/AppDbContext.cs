@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CampaignNote> CampaignNotes => Set<CampaignNote>();
     public DbSet<LoreacleMessage> LoreacleMessages => Set<LoreacleMessage>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+    public DbSet<CharacterSheet> CharacterSheets => Set<CharacterSheet>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -170,6 +171,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(m => new { m.CampaignId, m.UserId, m.SentAt });
+        });
+
+        modelBuilder.Entity<CharacterSheet>(entity =>
+        {
+            entity.Property(s => s.SysId).ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.HasKey(s => s.Id).HasAnnotation("SqlServer:Clustered", false);
+            entity.HasIndex(s => s.SysId).IsUnique().HasAnnotation("SqlServer:Clustered", true);
+            entity.HasIndex(s => s.CharacterId).IsUnique();
+
+            entity.HasOne(s => s.Character)
+                  .WithOne()
+                  .HasForeignKey<CharacterSheet>(s => s.CharacterId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ActivityLog>(entity =>

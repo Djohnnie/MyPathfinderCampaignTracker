@@ -117,6 +117,7 @@ app.MapUserManagementEndpoints();
 app.MapProfileEndpoints();
 app.MapCampaignEndpoints();
 app.MapCharacterEndpoints();
+app.MapCharacterSheetEndpoints();
 app.MapRecapEndpoints();
 app.MapChatEndpoints();
 app.MapLoreacleEndpoints();
