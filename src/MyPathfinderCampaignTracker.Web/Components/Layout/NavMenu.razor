@@ -13,6 +13,9 @@
             @if (FavoriteCampaignState.CampaignId.HasValue)
             {
                 <div class="fantasy-divider mx-3 mt-3">@FavoriteCampaignState.CampaignTitle</div>
+                <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}")" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+                    Overzicht
+                </MudNavLink>
                 <MudNavLink Href="@($"/campaigns/{FavoriteCampaignState.CampaignId}/characters")" Icon="@Icons.Material.Filled.Shield">
                     Karakters
                 </MudNavLink>
