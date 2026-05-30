@@ -73,7 +73,7 @@ else
                         <div class="parchment-note-author">
                             ✒ @note.AuthorUsername.CapFirst()
                             <span style="opacity:0.55; margin-left:6px; font-size:0.6rem;">
-                                @note.CreatedAt.ToLocalTime().ToString("d MMM yyyy")
+                                @ToBrussels(note.CreatedAt).ToString("d MMM yyyy")
                             </span>
                         </div>
                     </div>
@@ -108,6 +108,12 @@ else
 </MudDialog>
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     [Parameter] public Guid Id { get; set; }
 
     private CampaignDto? _campaign;

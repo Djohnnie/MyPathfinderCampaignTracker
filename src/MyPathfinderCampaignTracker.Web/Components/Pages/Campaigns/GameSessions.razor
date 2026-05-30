@@ -161,6 +161,9 @@ else
     private static DateTime ToBrussels(DateTime utc) =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
 
+    private static DateTime BrusselsToUtc(DateTime brusselsLocal) =>
+        TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(brusselsLocal, DateTimeKind.Unspecified), BrusselsZone);
+
     [Parameter] public Guid Id { get; set; }
 
     private CampaignDto? _campaign;
@@ -235,7 +238,7 @@ else
         _saving = true;
 
         var localDateTime = _selectedDate.Value.Date + _selectedTime.Value;
-        var scheduledAt = DateTime.SpecifyKind(localDateTime, DateTimeKind.Local).ToUniversalTime();
+        var scheduledAt = BrusselsToUtc(localDateTime);
         var request = new GameSessionRequest(scheduledAt, _locationInput.Trim());
 
         bool success;

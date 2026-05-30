@@ -60,7 +60,7 @@ else
                     }
                 </div>
             </MudTd>
-            <MudTd>@context.UpdatedAt.ToString("dd-MM-yyyy HH:mm")</MudTd>
+            <MudTd>@ToBrussels(context.UpdatedAt).ToString("dd-MM-yyyy HH:mm")</MudTd>
             <MudTd Style="text-align:right;">
                 <MudTooltip Text="Bewerken">
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
@@ -181,6 +181,12 @@ else
 </MudDialog>
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     private List<CampaignDto> _campaigns = [];
     private List<UserDto> _allUsers = [];
     private bool _loading = true;
@@ -318,8 +324,8 @@ else
                 _form.Description.Trim(),
                 string.IsNullOrWhiteSpace(_form.Link) ? null : _form.Link.Trim(),
                 _form.ExtensiveInformation.Trim(),
-                (_startDate ?? DateTime.Today).ToUniversalTime(),
-                _endDate?.ToUniversalTime());
+                DateTime.SpecifyKind((_startDate ?? DateTime.Today).Date, DateTimeKind.Utc),
+                _endDate.HasValue ? DateTime.SpecifyKind(_endDate.Value.Date, DateTimeKind.Utc) : null);
 
             if (_editingId.HasValue)
             {

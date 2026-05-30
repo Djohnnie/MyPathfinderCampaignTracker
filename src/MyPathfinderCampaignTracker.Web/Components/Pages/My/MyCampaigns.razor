@@ -70,7 +70,7 @@ else
                                 <div class="d-flex align-center" style="gap: 4px;">
                                     <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" Color="Color.Secondary" />
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                        Bijgewerkt: @campaign.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")
+                                        Bijgewerkt: @ToBrussels(campaign.UpdatedAt).ToString("d MMM yyyy")
                                     </MudText>
                                 </div>
                             </div>
@@ -98,6 +98,12 @@ else
 }
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     private List<CampaignDto> _campaigns = [];
     private bool _loading = true;
 

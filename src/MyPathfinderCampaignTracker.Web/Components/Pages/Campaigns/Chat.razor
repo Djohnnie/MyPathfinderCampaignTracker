@@ -185,10 +185,13 @@ else
             : username[..Math.Min(2, username.Length)].ToUpper();
     }
 
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
     private static string FormatTime(DateTime sentAt)
     {
-        var local = sentAt.ToLocalTime();
-        var now = DateTime.Now;
+        var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(sentAt, DateTimeKind.Utc), BrusselsZone);
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, BrusselsZone);
         if (local.Date == now.Date) return local.ToString("HH:mm");
         if (local.Date == now.Date.AddDays(-1)) return $"gisteren {local:HH:mm}";
         return local.ToString("d MMM HH:mm");

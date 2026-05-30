@@ -54,7 +54,9 @@ else
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="u => u.CreatedAt" Title="Geregistreerd" Format="yyyy-MM-dd HH:mm" />
+            <TemplateColumn Title="Geregistreerd" SortBy="@(u => u.CreatedAt)">
+                <CellTemplate>@ToBrussels(context.Item.CreatedAt).ToString("yyyy-MM-dd HH:mm")</CellTemplate>
+            </TemplateColumn>
             <TemplateColumn Title="Acties" CellStyle="min-width:220px">
                 <CellTemplate>
                     @if (!context.Item.IsApproved)
@@ -115,6 +117,12 @@ else
 </MudMessageBox>
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     private List<UserDto> _users = [];
     private bool _loading = true;
     private MudMessageBox? _deleteBox;
