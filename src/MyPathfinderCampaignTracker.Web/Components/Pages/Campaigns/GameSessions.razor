@@ -61,6 +61,9 @@ else
                                                    Color="Color.Error" OnClick="@(() => DeleteSession(session))" />
                                 </div>
                             </div>
+                            <MudText Typo="Typo.overline" Color="Color.Primary" Style="font-weight: 700;">
+                                #@SessionNumber(session)
+                            </MudText>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">
                                 @ToBrussels(session.ScheduledAt).ToString("dddd d MMMM yyyy")
                             </MudText>
@@ -94,6 +97,9 @@ else
                                                    Color="Color.Error" OnClick="@(() => DeleteSession(session))" />
                                 </div>
                             </div>
+                            <MudText Typo="Typo.overline" Color="Color.Secondary" Style="font-weight: 700;">
+                                #@SessionNumber(session)
+                            </MudText>
                             <MudText Typo="Typo.body1" Style="font-weight: 600;">
                                 @ToBrussels(session.ScheduledAt).ToString("dddd d MMMM yyyy")
                             </MudText>
@@ -166,6 +172,11 @@ else
 
     private List<GameSessionDto> PastSessions =>
         _sessions.Where(s => s.ScheduledAt < DateTime.UtcNow).OrderByDescending(s => s.ScheduledAt).ToList();
+
+    private int SessionNumber(GameSessionDto session) =>
+        _sessions.OrderBy(s => s.ScheduledAt)
+                 .Select((s, i) => (s.Id, Number: i + 1))
+                 .First(x => x.Id == session.Id).Number;
 
     private bool _dialogOpen = false;
     private bool _saving = false;

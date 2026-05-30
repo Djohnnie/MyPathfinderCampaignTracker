@@ -88,6 +88,16 @@ else
                     </TitleContent>
                     <ChildContent>
                         <MudDivider Class="mb-4" />
+                        @if (recap.GameSessionId.HasValue)
+                        {
+                            <MudPaper Elevation="0" Class="pa-3 mb-4" Style="border: 1px solid var(--mud-palette-lines-default);">
+                                <div class="d-flex align-center flex-wrap" style="gap: 12px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Primary" />
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Sessie</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@FormatSessionDetails(recap)</MudText>
+                                </div>
+                            </MudPaper>
+                        }
                         <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.7;">
                             @recap.Contents
                         </MudText>
@@ -128,6 +138,15 @@ else
             <MudItem xs="12">
                 <MudDatePicker @bind-Date="_formDate" Label="Datum" Variant="Variant.Outlined"
                                DateFormat="dd-MM-yyyy" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="Guid?" @bind-Value="_form.GameSessionId" Label="Sessie" Variant="Variant.Outlined"
+                           Clearable="true" Placeholder="Geen sessie gekoppeld">
+                    @foreach (var session in _sessions.OrderByDescending(s => s.ScheduledAt))
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)session.Id)">@FormatSessionOption(session)</MudSelectItem>
+                    }
+                </MudSelect>
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Contents" Label="Inhoud" Variant="Variant.Outlined"
@@ -183,10 +202,17 @@ else
 
 
 @code {
+    private static readonly TimeZoneInfo BrusselsZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+
+    private static DateTime ToBrussels(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), BrusselsZone);
+
     [Parameter] public Guid CampaignId { get; set; }
     [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
 
     private List<RecapDto> _recaps = [];
+    private List<GameSessionDto> _sessions = [];
     private string? _campaignTitle;
     private bool _loading = true;
 
@@ -232,6 +258,7 @@ else
 
         var campaign = await ApiClient.GetCampaignAsync(CampaignId);
         _campaignTitle = campaign?.Title;
+        _sessions = await ApiClient.GetGameSessionsAsync(CampaignId);
 
         await LoadRecapsAsync();
         _loading = false;
@@ -252,16 +279,19 @@ else
         _form = new RecapFormModel();
         _formDate = DateTime.Today;
         _dialogOpen = true;
-    }    private void OpenEditDialog(RecapDto recap)
+    }
+
+    private void OpenEditDialog(RecapDto recap)
     {
         _editingId = recap.Id;
         _editingNumber = recap.Number;
         _form = new RecapFormModel
         {
             Title = recap.Title,
-            Contents = recap.Contents
+            Contents = recap.Contents,
+            GameSessionId = recap.GameSessionId
         };
-        _formDate = recap.Date.ToLocalTime();
+        _formDate = recap.Date.Date;
         _dialogOpen = true;
     }
 
@@ -328,9 +358,10 @@ else
         try
         {
             var request = new RecapRequest(
-                (_formDate ?? DateTime.Today).ToUniversalTime(),
+                DateTime.SpecifyKind((_formDate ?? DateTime.Today).Date, DateTimeKind.Utc),
                 _form.Title.Trim(),
-                _form.Contents.Trim());
+                _form.Contents.Trim(),
+                _form.GameSessionId);
 
             if (_editingId.HasValue)
             {
@@ -382,5 +413,21 @@ else
     {
         public string Title { get; set; } = string.Empty;
         public string Contents { get; set; } = string.Empty;
+        public Guid? GameSessionId { get; set; }
+    }
+
+    private static string FormatSessionOption(GameSessionDto session)
+    {
+        var local = ToBrussels(session.ScheduledAt);
+        return $"{local:dddd d MMMM yyyy HH:mm} uur - {session.Location}";
+    }
+
+    private static string FormatSessionDetails(RecapDto recap)
+    {
+        if (recap.SessionScheduledAt is not DateTime scheduledAt)
+            return recap.SessionLocation ?? "Onbekende sessie";
+
+        var local = ToBrussels(scheduledAt);
+        return $"{local:dddd d MMMM yyyy HH:mm} uur - {recap.SessionLocation}";
     }
 }

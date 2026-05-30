@@ -10,6 +10,7 @@ public class RecapRepository(AppDbContext context) : IRecapRepository
     public async Task<IReadOnlyList<Recap>> GetByCampaignAsync(Guid campaignId)
         => await context.Recaps
             .Include(r => r.User)
+            .Include(r => r.GameSession)
             .Where(r => r.CampaignId == campaignId)
             .OrderByDescending(r => r.Number)
             .ToListAsync();
@@ -18,6 +19,7 @@ public class RecapRepository(AppDbContext context) : IRecapRepository
         => await context.Recaps
             .Include(r => r.User)
             .Include(r => r.Campaign)
+            .Include(r => r.GameSession)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.Date)
             .ThenByDescending(r => r.Number)
@@ -26,6 +28,7 @@ public class RecapRepository(AppDbContext context) : IRecapRepository
     public async Task<Recap?> GetByIdAsync(Guid id)
         => await context.Recaps
             .Include(r => r.User)
+            .Include(r => r.GameSession)
             .FirstOrDefaultAsync(r => r.Id == id);
 
     public async Task<int> GetMaxNumberAsync(Guid campaignId)

@@ -33,6 +33,7 @@ public class RecapService(IRecapRepository recapRepository) : IRecapService
         {
             Id = Guid.NewGuid(),
             CampaignId = campaignId,
+            GameSessionId = request.GameSessionId,
             UserId = userId,
             Number = nextNumber,
             Date = request.Date,
@@ -54,6 +55,7 @@ public class RecapService(IRecapRepository recapRepository) : IRecapService
         recap.Date = request.Date;
         recap.Title = request.Title;
         recap.Contents = request.Contents;
+        recap.GameSessionId = request.GameSessionId;
         recap.UpdatedAt = DateTime.UtcNow;
 
         await recapRepository.UpdateAsync(recap);
@@ -74,6 +76,9 @@ public class RecapService(IRecapRepository recapRepository) : IRecapService
         Id = r.Id,
         CampaignId = r.CampaignId,
         CampaignName = includeCampaignName ? (r.Campaign?.Title ?? string.Empty) : string.Empty,
+        GameSessionId = r.GameSessionId,
+        SessionScheduledAt = r.GameSession?.ScheduledAt,
+        SessionLocation = r.GameSession?.Location,
         UserId = r.UserId,
         AuthorUsername = r.User?.Username ?? string.Empty,
         Number = r.Number,

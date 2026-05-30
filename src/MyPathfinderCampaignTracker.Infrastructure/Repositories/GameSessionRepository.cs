@@ -39,6 +39,10 @@ public class GameSessionRepository(AppDbContext context) : IGameSessionRepositor
         var session = await context.GameSessions.FindAsync(id);
         if (session is not null)
         {
+            await context.Recaps
+                .Where(r => r.GameSessionId == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.GameSessionId, (Guid?)null));
+
             context.GameSessions.Remove(session);
             await context.SaveChangesAsync();
         }

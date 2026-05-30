@@ -5,6 +5,9 @@ public class RecapDto
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
     public string CampaignName { get; set; } = string.Empty;
+    public Guid? GameSessionId { get; set; }
+    public DateTime? SessionScheduledAt { get; set; }
+    public string? SessionLocation { get; set; }
     public Guid UserId { get; set; }
     public string AuthorUsername { get; set; } = string.Empty;
     public int Number { get; set; }
@@ -18,7 +21,8 @@ public class RecapDto
 public record RecapRequest(
     DateTime Date,
     string Title,
-    string Contents);
+    string Contents,
+    Guid? GameSessionId = null);
 
 public record RecapGenerateTitleRequest(string Contents);
 public record RecapGenerateTitleResponse(string Title);

@@ -37,10 +37,18 @@ public static class RecapEndpoints
             RecapRequest request,
             ClaimsPrincipal user,
             IRecapService recapService,
+            IGameSessionService gameSessionService,
             IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Title))
                 return Results.BadRequest("Title is required.");
+
+            if (request.GameSessionId is Guid gameSessionId)
+            {
+                var session = await gameSessionService.GetByIdAsync(gameSessionId);
+                if (session is null || session.CampaignId != campaignId)
+                    return Results.BadRequest("Session does not belong to this campaign.");
+            }
 
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -56,6 +64,7 @@ public static class RecapEndpoints
             RecapRequest request,
             ClaimsPrincipal user,
             IRecapService recapService,
+            IGameSessionService gameSessionService,
             IActivityLogService activityLogService) =>
         {
             if (string.IsNullOrWhiteSpace(request.Title))
@@ -63,6 +72,13 @@ public static class RecapEndpoints
 
             var existing = await recapService.GetByIdAsync(id);
             if (existing is null) return Results.NotFound();
+
+            if (request.GameSessionId is Guid gameSessionId)
+            {
+                var session = await gameSessionService.GetByIdAsync(gameSessionId);
+                if (session is null || session.CampaignId != existing.CampaignId)
+                    return Results.BadRequest("Session does not belong to this campaign.");
+            }
 
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))

@@ -6,6 +6,8 @@ public class Recap
     public Guid Id { get; set; }
     public Guid CampaignId { get; set; }
     public Campaign Campaign { get; set; } = null!;
+    public Guid? GameSessionId { get; set; }
+    public GameSession? GameSession { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
     public int Number { get; set; }

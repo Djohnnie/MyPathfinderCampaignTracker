@@ -533,6 +533,9 @@ namespace MyPathfinderCampaignTracker.Infrastructure.Migrations
                     b.Property<Guid>("CampaignId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("GameSessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Contents")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -576,6 +579,8 @@ namespace MyPathfinderCampaignTracker.Infrastructure.Migrations
 
                     b.HasIndex("CampaignId", "Number")
                         .IsUnique();
+
+                    b.HasIndex("GameSessionId");
 
                     b.ToTable("Recaps");
                 });
@@ -779,7 +784,14 @@ namespace MyPathfinderCampaignTracker.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("MyPathfinderCampaignTracker.Domain.Entities.GameSession", "GameSession")
+                        .WithMany()
+                        .HasForeignKey("GameSessionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Campaign");
+
+                    b.Navigation("GameSession");
 
                     b.Navigation("User");
                 });

@@ -95,7 +95,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                   .HasForeignKey(r => r.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(r => r.GameSession)
+                  .WithMany()
+                  .HasForeignKey(r => r.GameSessionId)
+                  .OnDelete(DeleteBehavior.NoAction)
+                  .IsRequired(false);
+
             entity.HasIndex(r => new { r.CampaignId, r.Number }).IsUnique();
+            entity.HasIndex(r => r.GameSessionId);
         });
 
         modelBuilder.Entity<ChatMessage>(entity =>
