@@ -10,19 +10,22 @@ public class CampaignRepository(AppDbContext context) : ICampaignRepository
     public async Task<IReadOnlyList<Campaign>> GetAllAsync()
         => await context.Campaigns
             .Include(c => c.Players)
+            .Include(c => c.DungeonMasters)
             .OrderByDescending(c => c.UpdatedAt)
             .ToListAsync();
 
     public async Task<IReadOnlyList<Campaign>> GetByPlayerAsync(Guid userId)
         => await context.Campaigns
             .Include(c => c.Players)
-            .Where(c => c.Players.Any(p => p.Id == userId))
+            .Include(c => c.DungeonMasters)
+            .Where(c => c.Players.Any(p => p.Id == userId) || c.DungeonMasters.Any(d => d.Id == userId))
             .OrderByDescending(c => c.UpdatedAt)
             .ToListAsync();
 
     public async Task<Campaign?> GetByIdAsync(Guid id)
         => await context.Campaigns
             .Include(c => c.Players)
+            .Include(c => c.DungeonMasters)
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public async Task AddAsync(Campaign campaign)
@@ -73,6 +76,36 @@ public class CampaignRepository(AppDbContext context) : ICampaignRepository
         if (player is not null)
         {
             campaign.Players.Remove(player);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task AddDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var campaign = await context.Campaigns
+            .Include(c => c.DungeonMasters)
+            .FirstOrDefaultAsync(c => c.Id == campaignId);
+        var user = await context.Users.FindAsync(userId);
+
+        if (campaign is null || user is null) return;
+        if (campaign.DungeonMasters.Any(d => d.Id == userId)) return;
+
+        campaign.DungeonMasters.Add(user);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task RemoveDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var campaign = await context.Campaigns
+            .Include(c => c.DungeonMasters)
+            .FirstOrDefaultAsync(c => c.Id == campaignId);
+
+        if (campaign is null) return;
+
+        var dm = campaign.DungeonMasters.FirstOrDefault(d => d.Id == userId);
+        if (dm is not null)
+        {
+            campaign.DungeonMasters.Remove(dm);
             await context.SaveChangesAsync();
         }
     }

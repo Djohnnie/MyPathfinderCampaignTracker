@@ -12,4 +12,6 @@ public interface ICampaignRepository
     Task DeleteAsync(Guid id);
     Task AddPlayerAsync(Guid campaignId, Guid userId);
     Task RemovePlayerAsync(Guid campaignId, Guid userId);
+    Task AddDungeonMasterAsync(Guid campaignId, Guid userId);
+    Task RemoveDungeonMasterAsync(Guid campaignId, Guid userId);
 }

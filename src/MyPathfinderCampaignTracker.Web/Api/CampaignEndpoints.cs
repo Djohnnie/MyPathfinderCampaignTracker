@@ -33,7 +33,7 @@ public static class CampaignEndpoints
             var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Guid.TryParse(userIdStr, out var userId);
 
-            if (!user.IsInRole("Admin") && !campaign.Players.Any(p => p.Id == userId))
+            if (!user.IsInRole("Admin") && !campaign.Players.Any(p => p.Id == userId) && !campaign.DungeonMasters.Any(d => d.Id == userId))
                 return Results.Forbid();
 
             return Results.Ok(campaign);
@@ -72,6 +72,18 @@ public static class CampaignEndpoints
         group.MapDelete("/{id:guid}/players/{userId:guid}", async (Guid id, Guid userId, ICampaignService campaignService) =>
         {
             var result = await campaignService.RemovePlayerAsync(id, userId);
+            return result ? Results.Ok() : Results.NotFound();
+        }).RequireAuthorization("ApiAdmin");
+
+        group.MapPost("/{id:guid}/dungeonmasters/{userId:guid}", async (Guid id, Guid userId, ICampaignService campaignService) =>
+        {
+            var result = await campaignService.AddDungeonMasterAsync(id, userId);
+            return result ? Results.Ok() : Results.NotFound();
+        }).RequireAuthorization("ApiAdmin");
+
+        group.MapDelete("/{id:guid}/dungeonmasters/{userId:guid}", async (Guid id, Guid userId, ICampaignService campaignService) =>
+        {
+            var result = await campaignService.RemoveDungeonMasterAsync(id, userId);
             return result ? Results.Ok() : Results.NotFound();
         }).RequireAuthorization("ApiAdmin");
 

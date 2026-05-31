@@ -13,4 +13,5 @@ public class Campaign
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public ICollection<User> Players { get; set; } = [];
+    public ICollection<User> DungeonMasters { get; set; } = [];
 }

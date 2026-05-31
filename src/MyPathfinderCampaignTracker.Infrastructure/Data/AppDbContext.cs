@@ -54,6 +54,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 e.Property<int>("SysId").ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
                 e.HasIndex("SysId").IsUnique().HasAnnotation("SqlServer:Clustered", true);
             });
+
+            entity.HasMany(c => c.DungeonMasters)
+                  .WithMany()
+                  .UsingEntity(
+                      "CampaignDungeonMasters",
+                      r => r.HasOne(typeof(User)).WithMany().HasForeignKey("DungeonMastersId").OnDelete(DeleteBehavior.Cascade),
+                      l => l.HasOne(typeof(Campaign)).WithMany().HasForeignKey("CampaignId").OnDelete(DeleteBehavior.Cascade),
+                      e =>
+                      {
+                          e.Property<Guid>("CampaignId");
+                          e.Property<Guid>("DungeonMastersId");
+                          e.HasKey("CampaignId", "DungeonMastersId").HasAnnotation("SqlServer:Clustered", false);
+                          e.Property<int>("SysId").ValueGeneratedOnAdd().Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+                          e.HasIndex("SysId").IsUnique().HasAnnotation("SqlServer:Clustered", true);
+                      });
         });
 
         modelBuilder.Entity<Character>(entity =>

@@ -12,6 +12,7 @@ public class CampaignDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public List<UserDto> Players { get; set; } = [];
+    public List<UserDto> DungeonMasters { get; set; } = [];
 }
 
 public record CampaignRequest(

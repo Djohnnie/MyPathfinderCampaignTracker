@@ -12,5 +12,7 @@ public interface ICampaignService
     Task<bool> DeleteAsync(Guid id);
     Task<bool> AddPlayerAsync(Guid campaignId, Guid userId);
     Task<bool> RemovePlayerAsync(Guid campaignId, Guid userId);
+    Task<bool> AddDungeonMasterAsync(Guid campaignId, Guid userId);
+    Task<bool> RemoveDungeonMasterAsync(Guid campaignId, Guid userId);
     Task<bool> UpdateDescriptionAsync(Guid campaignId, string description);
 }

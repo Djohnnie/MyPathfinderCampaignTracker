@@ -160,6 +160,19 @@ else
                         }
                     }
                 </div>
+                @if (_campaign.DungeonMasters.Count > 0)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">Dungeon Masters</MudText>
+                    <div class="d-flex flex-wrap mt-1" style="gap: 4px;">
+                        @foreach (var dm in _campaign.DungeonMasters)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined"
+                                     Icon="@Icons.Material.Filled.Shield">
+                                @dm.Username.CapFirst()
+                            </MudChip>
+                        }
+                    </div>
+                }
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -357,7 +370,9 @@ else
         if (_campaign is not null && !_campaign.EndDate.HasValue)
             _nextSession = await ApiClient.GetNextGameSessionAsync(Id);
 
-        _isPlayerOrAdmin = _isAdmin || (_campaign?.Players.Any(p => p.Id == _currentUserId) ?? false);
+        _isPlayerOrAdmin = _isAdmin
+            || (_campaign?.Players.Any(p => p.Id == _currentUserId) ?? false)
+            || (_campaign?.DungeonMasters.Any(d => d.Id == _currentUserId) ?? false);
 
         if (!FavoriteCampaignState.IsLoaded)
         {

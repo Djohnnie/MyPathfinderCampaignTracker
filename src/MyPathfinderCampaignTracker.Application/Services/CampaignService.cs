@@ -95,6 +95,31 @@ public class CampaignService(ICampaignRepository campaignRepository) : ICampaign
         return true;
     }
 
+    public async Task<bool> AddDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var campaign = await campaignRepository.GetByIdAsync(campaignId);
+        if (campaign is null) return false;
+        if (campaign.DungeonMasters.Any(d => d.Id == userId)) return true;
+
+        await campaignRepository.AddDungeonMasterAsync(campaignId, userId);
+
+        campaign.UpdatedAt = DateTime.UtcNow;
+        await campaignRepository.UpdateAsync(campaign);
+        return true;
+    }
+
+    public async Task<bool> RemoveDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var campaign = await campaignRepository.GetByIdAsync(campaignId);
+        if (campaign is null) return false;
+
+        await campaignRepository.RemoveDungeonMasterAsync(campaignId, userId);
+
+        campaign.UpdatedAt = DateTime.UtcNow;
+        await campaignRepository.UpdateAsync(campaign);
+        return true;
+    }
+
     public async Task<bool> UpdateDescriptionAsync(Guid campaignId, string description)
     {
         var campaign = await campaignRepository.GetByIdAsync(campaignId);
@@ -125,6 +150,15 @@ public class CampaignService(ICampaignRepository campaignRepository) : ICampaign
             IsApproved = p.IsApproved,
             IsDarkMode = p.IsDarkMode,
             CreatedAt = p.CreatedAt
+        }).ToList(),
+        DungeonMasters = c.DungeonMasters.Select(d => new UserDto
+        {
+            Id = d.Id,
+            Username = d.Username,
+            IsAdmin = d.IsAdmin,
+            IsApproved = d.IsApproved,
+            IsDarkMode = d.IsDarkMode,
+            CreatedAt = d.CreatedAt
         }).ToList()
     };
 }

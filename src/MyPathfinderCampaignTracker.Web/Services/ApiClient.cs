@@ -152,6 +152,22 @@ public class ApiClient(
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> AddCampaignDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var (client, hasToken) = await CreateClientAsync();
+        var response = await client.PostAsync($"/api/campaigns/{campaignId}/dungeonmasters/{userId}", null);
+        HandleUnauthorized(response, hasToken);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RemoveCampaignDungeonMasterAsync(Guid campaignId, Guid userId)
+    {
+        var (client, hasToken) = await CreateClientAsync();
+        var response = await client.DeleteAsync($"/api/campaigns/{campaignId}/dungeonmasters/{userId}");
+        HandleUnauthorized(response, hasToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<List<CharacterDto>> GetMyCharactersAsync()
     {
         return await GetJsonAsync<List<CharacterDto>>("/api/characters/my") ?? [];
