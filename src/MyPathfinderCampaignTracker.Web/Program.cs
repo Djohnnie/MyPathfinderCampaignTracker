@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,6 +13,11 @@ using MyPathfinderCampaignTracker.Web.Components;
 using MyPathfinderCampaignTracker.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var dutchBelgium = new CultureInfo("nl-BE");
+CultureInfo.DefaultThreadCurrentCulture = dutchBelgium;
+CultureInfo.DefaultThreadCurrentUICulture = dutchBelgium;
+
 
 builder.Services.AddMudServices();
 
@@ -105,6 +111,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found");
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(dutchBelgium),
+    SupportedCultures = [dutchBelgium],
+    SupportedUICultures = [dutchBelgium]
+});
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
